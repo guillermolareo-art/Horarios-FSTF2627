@@ -1,0 +1,202 @@
+{
+  "schemaVersion": 1,
+  "id": "fstf-2627",
+  "title": "Horario FSTF 26-27",
+  "subtitle": "Fundamentos de Sistemas y Tecnologías de Fabricación",
+  "archivo": "SABANA_20261008_7A_FINAL.xlsm",
+  "actualizado": "2026-10-08",
+  "comprobado": "2026-10-13 20:28",
+  "semanaInicio": "2026-10-12",
+  "historial": [
+    {
+      "semana": "1A",
+      "teoria": 6,
+      "seminario": 7,
+      "laboratorio": 0
+    },
+    {
+      "semana": "2B",
+      "teoria": 4,
+      "seminario": 0,
+      "laboratorio": 8
+    },
+    {
+      "semana": "3A",
+      "teoria": 6,
+      "seminario": 8,
+      "laboratorio": 8
+    },
+    {
+      "semana": "4B",
+      "teoria": 4,
+      "seminario": 0,
+      "laboratorio": 8
+    },
+    {
+      "semana": "5A",
+      "teoria": 4,
+      "seminario": 7,
+      "laboratorio": 0
+    },
+    {
+      "semana": "6B",
+      "teoria": 4,
+      "seminario": 7,
+      "laboratorio": 8
+    }
+  ],
+  "clases": [
+    {
+      "dia": "Miércoles",
+      "inicio": "09:10",
+      "fin": "10:00",
+      "tipo": "TEORIA",
+      "aula": "45",
+      "grupos": "G5 (4 CGA-ST), G6 (4 CGA-ST), IM1 (4 CIM-ST), IM2 (4 CIM-ST), GM2º"
+    },
+    {
+      "dia": "Miércoles",
+      "inicio": "15:30",
+      "fin": "16:20",
+      "tipo": "TEORIA",
+      "aula": "40",
+      "grupos": "G1 (4 CGA-ST), G2 (4 CGA-ST), G3 (4 CGA-ST), G4 (4 CGA-ST)"
+    },
+    {
+      "dia": "Jueves",
+      "inicio": "08:15",
+      "fin": "09:05",
+      "tipo": "TEORIA",
+      "aula": "45",
+      "grupos": "G5 (4 CGA-ST), G6 (4 CGA-ST), IM1 (4 CIM-ST), IM2 (4 CIM-ST), GM2º, SOPHIE"
+    },
+    {
+      "dia": "Jueves",
+      "inicio": "09:10",
+      "fin": "10:00",
+      "tipo": "TEORIA",
+      "aula": "40",
+      "grupos": "G1 (4 CGA-ST), G2 (4 CGA-ST), G3 (4 CGA-ST), G4 (4 CGA-ST)"
+    }
+  ],
+  "proximaSemana": {
+    "archivo": "SABANA_20261013_8B_PROVISIONAL.xlsm",
+    "actualizado": "2026-10-13",
+    "provisional": true,
+    "semanaInicio": "2026-10-19",
+    "clases": [
+      {
+        "dia": "Lunes",
+        "inicio": "14:35",
+        "fin": "15:25",
+        "tipo": "LABORATORIO",
+        "aula": "43",
+        "grupos": "IM1 (4 CIM-ST), IM2 (4 CIM-ST), GM2º"
+      },
+      {
+        "dia": "Lunes",
+        "inicio": "15:30",
+        "fin": "16:20",
+        "tipo": "LABORATORIO",
+        "aula": "43",
+        "grupos": "IM1 (4 CIM-ST), IM2 (4 CIM-ST), GM2º"
+      },
+      {
+        "dia": "Martes",
+        "inicio": "10:20",
+        "fin": "11:10",
+        "tipo": "TEORIA",
+        "aula": "40",
+        "grupos": "G1 (4 CGA-ST), G2 (4 CGA-ST), G3 (4 CGA-ST), G4 (4 CGA-ST)"
+      },
+      {
+        "dia": "Martes",
+        "inicio": "11:15",
+        "fin": "12:05",
+        "tipo": "TEORIA",
+        "aula": "45",
+        "grupos": "G5 (4 CGA-ST), G6 (4 CGA-ST), IM1 (4 CIM-ST), IM2 (4 CIM-ST), GM2º, SOPHIE"
+      },
+      {
+        "dia": "Martes",
+        "inicio": "16:25",
+        "fin": "17:15",
+        "tipo": "LABORATORIO",
+        "aula": "43",
+        "grupos": "G5 (4 CGA-ST), G6 (4 CGA-ST), GM2º, SOPHIE"
+      },
+      {
+        "dia": "Martes",
+        "inicio": "17:20",
+        "fin": "18:10",
+        "tipo": "LABORATORIO",
+        "aula": "43",
+        "grupos": "G5 (4 CGA-ST), G6 (4 CGA-ST), GM2º, SOPHIE"
+      },
+      {
+        "dia": "Miércoles",
+        "inicio": "08:15",
+        "fin": "09:05",
+        "tipo": "TEORIA",
+        "aula": "40",
+        "grupos": "G1 (4 CGA-ST), G2 (4 CGA-ST), G3 (4 CGA-ST), G4 (4 CGA-ST)"
+      },
+      {
+        "dia": "Miércoles",
+        "inicio": "09:10",
+        "fin": "10:00",
+        "tipo": "TEORIA",
+        "aula": null,
+        "grupos": "G5 (4 CGA-ST), G6 (4 CGA-ST), GM2º, SOPHIE"
+      },
+      {
+        "dia": "Miércoles",
+        "inicio": "09:10",
+        "fin": "10:00",
+        "tipo": "TEORIA",
+        "aula": "45",
+        "grupos": "IM1 (4 CIM-ST), IM2 (4 CIM-ST)"
+      },
+      {
+        "dia": "Miércoles",
+        "inicio": "09:10",
+        "fin": "10:00",
+        "tipo": "TEORIA",
+        "aula": "40",
+        "grupos": "GM2º"
+      },
+      {
+        "dia": "Miércoles",
+        "inicio": "10:20",
+        "fin": "11:10",
+        "tipo": "LABORATORIO",
+        "aula": "43",
+        "grupos": "G3 (4 CGA-ST), G4 (4 CGA-ST)"
+      },
+      {
+        "dia": "Miércoles",
+        "inicio": "11:15",
+        "fin": "12:05",
+        "tipo": "LABORATORIO",
+        "aula": "43",
+        "grupos": "G3 (4 CGA-ST), G4 (4 CGA-ST)"
+      },
+      {
+        "dia": "Jueves",
+        "inicio": "11:15",
+        "fin": "12:05",
+        "tipo": "LABORATORIO",
+        "aula": "43",
+        "grupos": "G1 (4 CGA-ST), G2 (4 CGA-ST)"
+      },
+      {
+        "dia": "Jueves",
+        "inicio": "12:10",
+        "fin": "13:00",
+        "tipo": "LABORATORIO",
+        "aula": "43",
+        "grupos": "G1 (4 CGA-ST), G2 (4 CGA-ST)"
+      }
+    ]
+  }
+}
