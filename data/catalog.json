@@ -1,0 +1,9 @@
+{
+  "schedules": [
+    {
+      "id": "fstf-2627",
+      "label": "FSTF 26-27",
+      "path": "data/fstf-2627.json"
+    }
+  ]
+}

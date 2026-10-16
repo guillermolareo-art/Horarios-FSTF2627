@@ -1,0 +1,184 @@
+:root{
+  --bg:#f6f7f6; --surface:#ffffff; --ink:#1b2430; --muted:#5c6773;
+  --border:#e1e4e2; --accent:#2e6f6e; --accent-ink:#ffffff;
+  --accent-soft:#e4f0ef; --seminario:#a8632c; --seminario-soft:#f6ead9;
+  --lab:#3d5a99; --lab-soft:#e6ebf7;
+  --now-ring: #2e6f6e; --warn:#a8632c; --warn-soft:#f6ead9;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#12161a; --surface:#1a1f24; --ink:#e8ebec; --muted:#8b96a1;
+    --border:#2a3238; --accent:#59b3ab; --accent-ink:#0d1a19;
+    --accent-soft:#173330; --seminario:#e0a15a; --seminario-soft:#3a2c19;
+    --lab:#8fa8e0; --lab-soft:#1f2a40;
+    --now-ring:#59b3ab; --warn:#e0a15a; --warn-soft:#3a2c19;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#12161a; --surface:#1a1f24; --ink:#e8ebec; --muted:#8b96a1;
+  --border:#2a3238; --accent:#59b3ab; --accent-ink:#0d1a19;
+  --accent-soft:#173330; --seminario:#e0a15a; --seminario-soft:#3a2c19;
+  --lab:#8fa8e0; --lab-soft:#1f2a40;
+  --now-ring:#59b3ab; --warn:#e0a15a; --warn-soft:#3a2c19;
+}
+*{box-sizing:border-box;}
+html,body{max-width:100%;overflow-x:hidden;}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Source Sans 3",system-ui,-apple-system,Segoe UI,sans-serif;
+  -webkit-font-smoothing:antialiased;}
+h1,h2,h3{font-family:"Libre Franklin",system-ui,sans-serif;text-wrap:balance;margin:0;}
+.mono{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,monospace;font-variant-numeric:tabular-nums;}
+
+.wrap{max-width:640px;margin:0 auto;padding:20px 16px 40px;}
+
+.input-tools{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:8px 12px;
+  background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:14px;}
+.input-label,.select-label{font-size:12px;font-weight:700;color:var(--ink);}
+.input-tools input[type=file],.input-tools select{min-width:0;max-width:100%;font:inherit;font-size:12px;color:var(--ink);}
+.reload-button{grid-column:1/-1;justify-self:start;font:inherit;font-size:12px;font-weight:700;color:var(--accent);
+  background:var(--surface);border:1px solid var(--accent);border-radius:7px;padding:6px 9px;cursor:pointer;}
+.input-help,.input-error{grid-column:1/-1;margin:0;font-size:11.5px;color:var(--muted);}
+.input-error{color:var(--warn);font-weight:600;}
+.no-upcoming{display:inline;margin:0 0 0 8px;color:var(--warn);font-size:12px;font-weight:600;}
+
+header{display:flex;flex-direction:column;gap:4px;margin-bottom:10px;}
+.eyebrow{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);}
+h1{font-size:26px;font-weight:800;letter-spacing:-.01em;}
+.subtitle{color:var(--muted);font-size:13.5px;}
+
+.meta-top{
+  display:flex;flex-wrap:wrap;gap:4px 14px;
+  font-size:11.5px;color:var(--muted);margin-bottom:16px;
+  padding-bottom:12px;border-bottom:1px solid var(--border);
+}
+.meta-top span{white-space:nowrap;}
+.meta-top b{color:var(--ink);font-weight:600;}
+
+/* Pestañas semana actual / próxima semana (provisional) */
+.week-tabs{display:flex;gap:6px;margin-bottom:14px;}
+.week-tabs button{
+  flex:1 1 auto;font:inherit;font-size:12.5px;font-weight:700;cursor:pointer;
+  background:var(--surface);color:var(--muted);border:1px solid var(--border);
+  border-radius:9px;padding:8px 10px;transition:.15s ease;
+}
+.week-tabs button.active{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);}
+.week-tabs button .tag{
+  display:inline-block;margin-left:5px;font-size:9.5px;font-weight:700;letter-spacing:.03em;
+  text-transform:uppercase;padding:1px 5px;border-radius:4px;
+  background:var(--warn-soft);color:var(--warn);vertical-align:1px;
+}
+.week-tabs button.active .tag{background:rgba(255,255,255,.25);color:inherit;}
+
+.provisional-banner{
+  display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:var(--warn);
+  background:var(--warn-soft);border:1px solid var(--warn);border-radius:9px;
+  padding:8px 11px;margin-bottom:14px;
+}
+
+nav.days{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:18px;-webkit-overflow-scrolling:touch;}
+nav.days a{flex:0 0 auto;font-size:12.5px;font-weight:600;color:var(--muted);
+  background:var(--surface);border:1px solid var(--border);padding:6px 12px;border-radius:999px;
+  text-decoration:none;scroll-snap-align:start;}
+nav.days a:hover{color:var(--ink);}
+
+.day{margin-bottom:22px;}
+.day h2{font-size:16px;font-weight:800;margin-bottom:8px;padding-top:6px;}
+.day h2 .count{color:var(--muted);font-weight:500;font-size:12.5px;margin-left:6px;}
+
+/* Tarjeta de clase: layout apilado, sin partir palabras.
+   Fila 1: hora (izq) + aula (der, ancho libre). Fila 2: tipo + grupos (envuelve por espacios). */
+.slot{
+  display:flex;flex-direction:column;gap:6px;
+  background:var(--surface);border:1px solid var(--border);border-radius:10px;
+  padding:11px 12px;margin-bottom:8px;position:relative;
+  max-width:100%;
+  transition:opacity .2s ease;
+}
+.slot-row1{display:flex;align-items:baseline;justify-content:space-between;gap:10px;}
+.slot .t{font-size:14px;line-height:1.2;color:var(--ink);white-space:nowrap;font-weight:600;}
+.slot .t .end{color:var(--muted);font-weight:400;}
+.slot .t .end::before{content:" – ";}
+.slot .room{font-size:12px;color:var(--muted);text-align:right;white-space:nowrap;flex:0 0 auto;}
+.slot .room b{color:var(--ink);font-weight:700;}
+.slot .g{font-size:13.5px;line-height:1.4;}
+.slot .g .badge{
+  display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;
+  padding:2px 7px;border-radius:5px;margin-right:6px;vertical-align:1px;
+}
+.badge.teoria{background:var(--accent-soft);color:var(--accent);}
+.badge.seminario{background:var(--seminario-soft);color:var(--seminario);}
+.badge.laboratorio{background:var(--lab-soft);color:var(--lab);}
+
+/* Clase ya pasada: se difumina para dar prioridad visual a lo que queda por venir */
+.slot.is-past{opacity:.4;}
+.slot.is-past .badge{background:transparent;color:var(--muted);}
+
+/* Clase en curso ahora mismo */
+.slot.is-now{box-shadow:0 0 0 2px var(--now-ring) inset;}
+
+/* Próxima clase: la que viene justo después de "ahora" */
+.slot.is-next{
+  border-color:var(--accent);
+  border-left-width:4px;
+  background:var(--accent-soft);
+}
+.slot.is-next .t{color:var(--accent);}
+.next-tag{
+  font-family:"IBM Plex Mono",monospace;font-size:9.5px;font-weight:700;
+  letter-spacing:.06em;color:var(--accent);margin-bottom:5px;
+}
+
+.week-history{margin-bottom:22px;}
+.week-history h3{
+  font-size:13px;font-weight:700;color:var(--ink);
+  padding:8px 0 4px;
+}
+.week-history h2{font-size:13px;font-weight:700;color:var(--ink);padding:8px 0 4px;}
+.week-history-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:6px;}
+.week-history table{width:100%;min-width:230px;border-collapse:collapse;font-size:12.5px;}
+.week-history th,.week-history td{padding:6px 8px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;}
+.week-history th:not(:first-child),.week-history td.num{text-align:center;}
+.week-history th{color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.03em;}
+.week-history td.num{text-align:center;font-variant-numeric:tabular-nums;}
+.week-history tr.current td{font-weight:700;color:var(--accent);}
+.week-history tr.current{background:var(--accent-soft);}
+.week-history tr.upcoming td{font-weight:600;color:var(--warn);font-style:italic;}
+.week-history tr.upcoming{background:var(--warn-soft);}
+
+footer{margin-top:28px;padding-top:14px;border-top:1px solid var(--border);
+  font-size:11.5px;color:var(--muted);}
+
+#print-sheet{display:none;}
+
+@page{ size: A4; margin: 10mm; }
+@media print{
+  html,body{overflow:visible !important;height:99% !important;width:190mm !important;max-width:190mm !important;}
+  body{background:#fff;}
+  .wrap{max-width:190mm !important;width:190mm !important;margin:0 !important;padding:0 !important;}
+  #print-sheet{width:190mm !important;page-break-after:avoid;break-after:avoid;}
+  #print-sheet .summary{width:190mm !important;page-break-inside:avoid;break-inside:avoid;page-break-after:avoid;break-after:avoid;}
+  header{display:none !important;}
+  .meta-top{display:none !important;}
+  .week-tabs, .provisional-banner, .input-tools{display:none !important;}
+  nav.days, #days{display:none !important;}
+  .week-history{display:none !important;}
+  #print-sheet{display:block;}
+  #print-sheet table{width:100%;border-collapse:collapse;font-size:14px;}
+  #print-sheet caption{text-align:left;font-family:"Libre Franklin",sans-serif;font-weight:800;font-size:17px;margin-bottom:8px;color:#1b2430;}
+  #print-sheet th,#print-sheet td{border:1px solid #ccc;padding:6px 8px;text-align:left;vertical-align:top;}
+  #print-sheet td.dia-cell{vertical-align:middle;font-weight:700;border-right:2px solid #999;}
+  #print-sheet .hora-borde{font-weight:800;font-size:1.25em;}
+  #print-sheet th{background:#1b2430 !important;color:#fff !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;font-size:12.5px;text-transform:uppercase;letter-spacing:.03em;}
+  #print-sheet .summary{margin-top:0;}
+  #print-sheet .summary table{width:100%;table-layout:fixed;}
+  #print-sheet .summary td:empty{border-color:transparent;}
+  #print-sheet .meta{font-size:12px;color:#555;margin-bottom:12px;}
+  footer{display:none !important;}
+
+  /* Solo se imprime la tabla resumen transpuesta (días en columnas, primera/última hora
+     resaltadas): es una tabla pensada para tener en casa y ver de un vistazo cómo va el
+     horario. La tabla detallada (.detail-table) NO se imprime — se oculta siempre en impresión.
+     Se imprime siempre vía el propio Share→Imprimir del navegador (no hay botón en la página:
+     el Artifact se sirve en un iframe con sandbox que bloquea window.print/open/alert). */
+  #print-sheet .detail-table{display:none !important;}
+}

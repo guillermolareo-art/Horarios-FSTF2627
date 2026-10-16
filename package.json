@@ -1,0 +1,8 @@
+{
+  "name": "horario-fstf-pages",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "validate-schedules": "node scripts/validate-schedules.mjs"
+  }
+}

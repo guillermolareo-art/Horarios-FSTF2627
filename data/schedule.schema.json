@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/schedule.schema.json",
+  "title": "Horario independiente del modelo",
+  "type": "object",
+  "required": ["schemaVersion", "id", "title", "archivo", "actualizado", "clases"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "id": { "type": "string", "minLength": 1 },
+    "title": { "type": "string", "minLength": 1 },
+    "subtitle": { "type": "string" },
+    "archivo": { "type": "string" },
+    "actualizado": { "type": "string" },
+    "comprobado": { "type": "string" },
+    "semanaInicio": { "type": "string", "format": "date" },
+    "historial": { "type": "array", "items": { "$ref": "#/$defs/history" } },
+    "clases": { "type": "array", "items": { "$ref": "#/$defs/class" } },
+    "proximaSemana": {
+      "type": ["object", "null"],
+      "properties": {
+        "archivo": { "type": "string" },
+        "actualizado": { "type": "string" },
+        "provisional": { "type": "boolean" },
+        "semanaInicio": { "type": "string", "format": "date" },
+        "clases": { "type": "array", "items": { "$ref": "#/$defs/class" } }
+      },
+      "required": ["archivo", "clases"]
+    }
+  },
+  "$defs": {
+    "class": {
+      "type": "object",
+      "required": ["dia", "inicio", "fin", "tipo", "grupos"],
+      "properties": {
+        "dia": { "type": "string" },
+        "inicio": { "type": "string", "pattern": "^([01]?[0-9]|2[0-3]):[0-5][0-9]$" },
+        "fin": { "type": "string", "pattern": "^([01]?[0-9]|2[0-3]):[0-5][0-9]$" },
+        "tipo": { "type": "string" },
+        "aula": { "type": ["string", "number", "null"] },
+        "grupos": { "type": "string" }
+      }
+    },
+    "history": {
+      "type": "object",
+      "required": ["semana", "teoria", "seminario", "laboratorio"],
+      "properties": {
+        "semana": { "type": "string" },
+        "teoria": { "type": "number", "minimum": 0 },
+        "seminario": { "type": "number", "minimum": 0 },
+        "laboratorio": { "type": "number", "minimum": 0 }
+      }
+    }
+  }
+}
