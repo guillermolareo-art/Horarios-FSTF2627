@@ -1,0 +1,79 @@
+name: Update FABRIC schedule from Gmail
+
+# Lee Gmail (solo lectura, credenciales propias del usuario via secretos),
+# importa la sabana de FABRIC de forma deterministas y, SOLO si pasa todas
+# las comprobaciones, propone un Pull Request con el JSON actualizado.
+# Nunca hace push directo a main: siempre PR, para que una persona revise
+# y "Validate schedule data" (validate-schedules.yml) tenga que pasar antes
+# de fusionar. Si algo es ambiguo o falla, el job termina en error, no se
+# escribe nada y no se abre PR -- el horario publicado se queda como estaba.
+
+on:
+  schedule:
+    - cron: "0 6 * * *"   # una vez al dia; ajustar si se necesita mas frecuencia
+  workflow_dispatch: {}     # permite lanzarlo a mano desde la pestaña Actions
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: update-fabric
+  cancel-in-progress: false  # nunca cancelar a mitad de una escritura
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Instalar dependencias
+        run: pip install -r scripts/requirements.txt
+
+      - name: Ejecutar el pipeline (Gmail -> importar -> fusionar)
+        id: pipeline
+        env:
+          GMAIL_CLIENT_ID: ${{ secrets.GMAIL_CLIENT_ID }}
+          GMAIL_CLIENT_SECRET: ${{ secrets.GMAIL_CLIENT_SECRET }}
+          GMAIL_REFRESH_TOKEN: ${{ secrets.GMAIL_REFRESH_TOKEN }}
+        run: |
+          set -o pipefail
+          python -m scripts.pipeline 2>&1 | tee pipeline_output.log
+          echo "cambios=$(git status --porcelain data/fstf-2627.json data/.sabanas_procesadas.json | wc -l)" >> "$GITHUB_OUTPUT"
+        # No se usa "::add-mask::" aqui porque los secretos nunca se
+        # imprimen: gmail_fetch.py los lee de variables de entorno y no los
+        # vuelve a mostrar en ningun print ni excepcion.
+
+      - name: Validar el esquema tras la fusion
+        if: steps.pipeline.outputs.cambios != '0'
+        run: npm run validate-schedules
+
+      - name: Abrir Pull Request con el horario actualizado
+        if: steps.pipeline.outputs.cambios != '0'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: auto/update-fabric
+          delete-branch: true
+          title: "Actualizar horario FABRIC desde Gmail"
+          commit-message: "Actualizar data/fstf-2627.json desde la sabana de Gmail"
+          body: |
+            Generado automaticamente por update-fabric.yml a partir del correo
+            de coordinacion.horarios.espacios@cud.uvigo.es.
+
+            Revisar los avisos (si los hay) antes de fusionar -- ver el log
+            completo del job para el detalle de cada aviso.
+
+            No se ha hecho push directo a main: este PR solo se fusiona tras
+            revision humana y tras pasar "Validate schedule data".
+
+      - name: Subir el log del pipeline como artefacto
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pipeline-log
+          path: pipeline_output.log
+          retention-days: 30
