@@ -56,6 +56,13 @@ jobs:
         if: steps.pipeline.outputs.cambios != '0'
         uses: peter-evans/create-pull-request@v7
         with:
+          # Solo estos dos ficheros deben entrar en el PR. Sin esto,
+          # "create-pull-request" commitea CUALQUIER cambio que encuentre en
+          # el workspace -- incluido pipeline_output.log o __pycache__/ si el
+          # .gitignore no los hubiera parado antes.
+          add-paths: |
+            data/fstf-2627.json
+            data/.sabanas_procesadas.json
           branch: auto/update-fabric
           delete-branch: true
           title: "Actualizar horario FABRIC desde Gmail"
