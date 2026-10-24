@@ -3,10 +3,10 @@
   "id": "fstf-2627",
   "title": "Horario FSTF 26-27",
   "subtitle": "Fundamentos de Sistemas y Tecnologías de Fabricación",
-  "archivo": "SABANA_20261016_8B_FINAL.xlsm",
-  "actualizado": "2026-10-16",
-  "comprobado": "2026-10-22 08:17",
-  "semanaInicio": "2026-10-19",
+  "archivo": "SABANA_20261022_9A_FINAL.xlsm",
+  "actualizado": "2026-10-22",
+  "comprobado": "2026-10-24 10:21",
+  "semanaInicio": "2026-10-26",
   "historial": [
     {
       "semana": "1A",
@@ -49,91 +49,17 @@
       "teoria": 4,
       "seminario": 0,
       "laboratorio": 0
+    },
+    {
+      "semana": "8B",
+      "teoria": 4,
+      "seminario": 0,
+      "laboratorio": 8
     }
   ],
   "clases": [
     {
       "dia": "Lunes",
-      "inicio": "14:35",
-      "fin": "15:25",
-      "tipo": "LABORATORIO",
-      "aula": 43,
-      "grupos": "IM1 (4 CIM-ST), IM2 (4 CIM-ST), EDWIN"
-    },
-    {
-      "dia": "Lunes",
-      "inicio": "15:30",
-      "fin": "16:20",
-      "tipo": "LABORATORIO",
-      "aula": 43,
-      "grupos": "IM1 (4 CIM-ST), IM2 (4 CIM-ST), EDWIN"
-    },
-    {
-      "dia": "Lunes",
-      "inicio": "16:25",
-      "fin": "17:15",
-      "tipo": "LABORATORIO",
-      "aula": 43,
-      "grupos": "G1 (4 CGA-ST), G2 (4 CGA-ST)"
-    },
-    {
-      "dia": "Lunes",
-      "inicio": "17:20",
-      "fin": "18:10",
-      "tipo": "LABORATORIO",
-      "aula": 43,
-      "grupos": "G1 (4 CGA-ST), G2 (4 CGA-ST)"
-    },
-    {
-      "dia": "Martes",
-      "inicio": "10:20",
-      "fin": "11:10",
-      "tipo": "TEORIA",
-      "aula": 40,
-      "grupos": "G1 (4 CGA-ST), G2 (4 CGA-ST), G3 (4 CGA-ST), G4 (4 CGA-ST)"
-    },
-    {
-      "dia": "Martes",
-      "inicio": "11:15",
-      "fin": "12:05",
-      "tipo": "TEORIA",
-      "aula": 45,
-      "grupos": "G5 (4 CGA-ST), G6 (4 CGA-ST), IM1 (4 CIM-ST), IM2 (4 CIM-ST), TORRENTE_LA_PISA, EDWIN, SOPHIE"
-    },
-    {
-      "dia": "Martes",
-      "inicio": "15:30",
-      "fin": "16:20",
-      "tipo": "LABORATORIO",
-      "aula": 43,
-      "grupos": "G3 (4 CGA-ST), G4 (4 CGA-ST)"
-    },
-    {
-      "dia": "Martes",
-      "inicio": "16:25",
-      "fin": "17:15",
-      "tipo": "LABORATORIO",
-      "aula": 43,
-      "grupos": "G3 (4 CGA-ST), G4 (4 CGA-ST)"
-    },
-    {
-      "dia": "Martes",
-      "inicio": "17:20",
-      "fin": "18:10",
-      "tipo": "LABORATORIO",
-      "aula": 43,
-      "grupos": "G5 (4 CGA-ST), G6 (4 CGA-ST), TORRENTE_LA_PISA, SOPHIE"
-    },
-    {
-      "dia": "Martes",
-      "inicio": "18:15",
-      "fin": "19:00",
-      "tipo": "LABORATORIO",
-      "aula": 43,
-      "grupos": "G5 (4 CGA-ST), G6 (4 CGA-ST), TORRENTE_LA_PISA, SOPHIE"
-    },
-    {
-      "dia": "Miércoles",
       "inicio": "08:15",
       "fin": "09:05",
       "tipo": "TEORIA",
@@ -141,116 +67,101 @@
       "grupos": "G1 (4 CGA-ST), G2 (4 CGA-ST), G3 (4 CGA-ST), G4 (4 CGA-ST)"
     },
     {
-      "dia": "Miércoles",
+      "dia": "Lunes",
       "inicio": "09:10",
       "fin": "10:00",
       "tipo": "TEORIA",
+      "aula": 40,
+      "grupos": "G1 (4 CGA-ST), G2 (4 CGA-ST), G3 (4 CGA-ST), G4 (4 CGA-ST)"
+    },
+    {
+      "dia": "Lunes",
+      "inicio": "10:20",
+      "fin": "11:10",
+      "tipo": "TEORIA",
       "aula": 45,
       "grupos": "G5 (4 CGA-ST), G6 (4 CGA-ST), IM1 (4 CIM-ST), IM2 (4 CIM-ST), TORRENTE_LA_PISA, EDWIN, SOPHIE"
+    },
+    {
+      "dia": "Lunes",
+      "inicio": "11:15",
+      "fin": "12:05",
+      "tipo": "TEORIA",
+      "aula": 45,
+      "grupos": "G5 (4 CGA-ST), G6 (4 CGA-ST), IM1 (4 CIM-ST), IM2 (4 CIM-ST), TORRENTE_LA_PISA, EDWIN, SOPHIE"
+    },
+    {
+      "dia": "Lunes",
+      "inicio": "12:10",
+      "fin": "13:00",
+      "tipo": "SEMINARIO",
+      "aula": 40,
+      "grupos": "G2 (4 CGA-ST)"
+    },
+    {
+      "dia": "Lunes",
+      "inicio": "15:30",
+      "fin": "16:20",
+      "tipo": "SEMINARIO",
+      "aula": 42,
+      "grupos": "G1 (4 CGA-ST)"
+    },
+    {
+      "dia": "Martes",
+      "inicio": "14:35",
+      "fin": "15:25",
+      "tipo": "SEMINARIO",
+      "aula": 45,
+      "grupos": "IM1 (4 CIM-ST), IM2 (4 CIM-ST), TORRENTE_LA_PISA, EDWIN"
+    },
+    {
+      "dia": "Miércoles",
+      "inicio": "08:15",
+      "fin": "09:05",
+      "tipo": "SEMINARIO",
+      "aula": 40,
+      "grupos": "G3 (4 CGA-ST)"
+    },
+    {
+      "dia": "Miércoles",
+      "inicio": "09:10",
+      "fin": "10:00",
+      "tipo": "SEMINARIO",
+      "aula": 40,
+      "grupos": "G4 (4 CGA-ST)"
+    },
+    {
+      "dia": "Miércoles",
+      "inicio": "10:20",
+      "fin": "11:10",
+      "tipo": "SEMINARIO",
+      "aula": 45,
+      "grupos": "G5 (4 CGA-ST)"
+    },
+    {
+      "dia": "Miércoles",
+      "inicio": "12:10",
+      "fin": "13:00",
+      "tipo": "SEMINARIO",
+      "aula": 40,
+      "grupos": "G6 (4 CGA-ST), SOPHIE"
+    },
+    {
+      "dia": "Jueves",
+      "inicio": "10:20",
+      "fin": "11:10",
+      "tipo": "SEMINARIO",
+      "aula": 45,
+      "grupos": "IM1 (4 CIM-ST), IM2 (4 CIM-ST)"
+    },
+    {
+      "dia": "Jueves",
+      "inicio": "12:10",
+      "fin": "13:00",
+      "tipo": "SEMINARIO",
+      "aula": 45,
+      "grupos": "SOPHIE"
     }
   ],
-  "proximaSemana": {
-    "archivo": "SABANA_20261021_9A_PROVISIONAL.xlsm",
-    "actualizado": "2026-10-21",
-    "provisional": true,
-    "semanaInicio": "2026-10-26",
-    "clases": [
-      {
-        "dia": "Lunes",
-        "inicio": "08:15",
-        "fin": "09:05",
-        "tipo": "TEORIA",
-        "aula": 40,
-        "grupos": "G1 (4 CGA-ST), G2 (4 CGA-ST), G3 (4 CGA-ST), G4 (4 CGA-ST)"
-      },
-      {
-        "dia": "Lunes",
-        "inicio": "09:10",
-        "fin": "10:00",
-        "tipo": "TEORIA",
-        "aula": 40,
-        "grupos": "G1 (4 CGA-ST), G2 (4 CGA-ST), G3 (4 CGA-ST), G4 (4 CGA-ST)"
-      },
-      {
-        "dia": "Lunes",
-        "inicio": "10:20",
-        "fin": "11:10",
-        "tipo": "TEORIA",
-        "aula": 45,
-        "grupos": "G5 (4 CGA-ST), G6 (4 CGA-ST), IM1 (4 CIM-ST), IM2 (4 CIM-ST), TORRENTE_LA_PISA, EDWIN, SOPHIE"
-      },
-      {
-        "dia": "Lunes",
-        "inicio": "11:15",
-        "fin": "12:05",
-        "tipo": "TEORIA",
-        "aula": 45,
-        "grupos": "G5 (4 CGA-ST), G6 (4 CGA-ST), IM1 (4 CIM-ST), IM2 (4 CIM-ST), TORRENTE_LA_PISA, EDWIN, SOPHIE"
-      },
-      {
-        "dia": "Lunes",
-        "inicio": "12:10",
-        "fin": "13:00",
-        "tipo": "SEMINARIO",
-        "aula": 40,
-        "grupos": "G2 (4 CGA-ST)"
-      },
-      {
-        "dia": "Lunes",
-        "inicio": "15:30",
-        "fin": "16:20",
-        "tipo": "SEMINARIO",
-        "aula": 42,
-        "grupos": "G1 (4 CGA-ST)"
-      },
-      {
-        "dia": "Martes",
-        "inicio": "14:35",
-        "fin": "15:25",
-        "tipo": "SEMINARIO",
-        "aula": 45,
-        "grupos": "IM1 (4 CIM-ST), IM2 (4 CIM-ST), TORRENTE_LA_PISA, EDWIN"
-      },
-      {
-        "dia": "Miércoles",
-        "inicio": "08:15",
-        "fin": "09:05",
-        "tipo": "SEMINARIO",
-        "aula": 40,
-        "grupos": "G3 (4 CGA-ST)"
-      },
-      {
-        "dia": "Miércoles",
-        "inicio": "09:10",
-        "fin": "10:00",
-        "tipo": "SEMINARIO",
-        "aula": 40,
-        "grupos": "G4 (4 CGA-ST)"
-      },
-      {
-        "dia": "Miércoles",
-        "inicio": "10:20",
-        "fin": "11:10",
-        "tipo": "SEMINARIO",
-        "aula": 45,
-        "grupos": "G5 (4 CGA-ST)"
-      },
-      {
-        "dia": "Miércoles",
-        "inicio": "12:10",
-        "fin": "13:00",
-        "tipo": "SEMINARIO",
-        "aula": 40,
-        "grupos": "G6 (4 CGA-ST), SOPHIE"
-      },
-      {
-        "dia": "Jueves",
-        "inicio": "12:10",
-        "fin": "13:00",
-        "tipo": "SEMINARIO",
-        "aula": 45,
-        "grupos": "SOPHIE"
-      }
-    ]
-  }
+  "proximaSemana": null
 }
