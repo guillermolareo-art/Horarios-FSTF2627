@@ -1,9 +1,14 @@
 """
-Tests contra correos REALES de coordinacion.horarios.espacios@cud.uvigo.es
-(recogidos con mcp__Gmail__search_threads / get_message en la auditoria de la
-sesion anterior, semanas 2B/3A/4B de septiembre 2026). No son datos sinteticos
-inventados: son el asunto, remitente, fecha y nombre de adjunto reales de cada
-mensaje, tal como los devolvio Gmail.
+Tests contra correos REALES del buzon institucional de coordinacion de
+horarios (recogidos con mcp__Gmail__search_threads / get_message en la
+auditoria de una sesion anterior, semanas 2B/3A/4B de septiembre 2026). No
+son datos sinteticos inventados: son el asunto, fecha y nombre de adjunto
+reales de cada mensaje, tal como los devolvio Gmail.
+
+Lo que SI esta sustituido, a proposito, son los datos de personas concretas.
+Este repositorio es publico: la direccion de un companero y el texto de su
+correo no son del autor para publicarlos. Donde hace falta un remitente que
+no sea el esperado, se usa una direccion ficticia del mismo dominio.
 """
 from datetime import datetime, timezone, date
 
@@ -97,13 +102,14 @@ def test_correo_3a_provisional_con_aulas():
 
 
 def test_respuesta_de_otro_profesor_se_descarta_aunque_tenga_remitente_similar():
-    # avcarpentier@cud.uvigo.es respondiendo al hilo: no es el remitente esperado.
+    # Otro profesor respondiendo al hilo: no es el remitente esperado.
+    # Direccion y cuerpo ficticios; lo que se prueba es la forma, no el texto.
     c = correo(
         message_id="1a08a1c3f1d1e7f5",
-        remitente="avcarpentier@cud.uvigo.es",
+        remitente="otro.profesor@cud.uvigo.es",
         fecha_envio=datetime(2026, 9, 10, 6, 57, 0, tzinfo=UTC),
         asunto="Re: [pdi] Sábana provisional 3A con aulas",
-        cuerpo_texto="¿la clase de refuerzo de física I sería el jueves de 9 a 11?",
+        cuerpo_texto="¿la clase de refuerzo sería el jueves de 9 a 11?",
         adjuntos=(),
     )
     assert es_respuesta_de_hilo(c) is True

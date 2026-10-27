@@ -10,15 +10,18 @@ SABANA_20261021_9A_PROVISIONAL.xlsm (no asumida de documentacion anterior):
     etiqueta repartida en hasta 4 filas (1=Nombre alumno especifico si lo hay,
     2=Empleo/rango, 3=Promocion, 4=Grupo). Para un grupo colectivo (G1..G6,
     IM1, IM2) la fila 4 trae el nombre completo con curso, p.ej.
-    "G1 (4 CGA-ST)". Para un cadete INDIVIDUAL con nombre propio (columnas
-    AE/AG en este curso: TORRENTE_LA_PISA, EDWIN) el nombre real esta en la
-    fila 1, y la fila 4 esta vacia o solo trae el rango ("GM2º") -- usar la
-    fila 1 ahi es obligatorio, o el nombre sale mal (p.ej. dos alumnos
-    distintos apareciendo ambos como "GM2º"). Para un alumno de intercambio
-    USNA sin nombre en la fila 1 (columnas AI/AK/AM/AO: KALIL, SOPHIE, HENRY,
-    BRANUM), la fila 4 SI trae su nombre de pila y es la que hay que usar.
-    Por eso el orden de preferencia real (verificado, no copiado de
-    documentacion previa) es: fila1 -> fila4 -> fila3 -> fila2.
+    "G1 (4 CGA-ST)". Para un cadete INDIVIDUAL sin grupo asignado (dos
+    columnas en este curso) el nombre esta en la fila 1, y la fila 4 esta
+    vacia o solo trae el rango ("GM2º") -- usar la fila 1 ahi es obligatorio,
+    o la columna sale mal (dos alumnos distintos apareciendo ambos como
+    "GM2º"). Para un alumno de intercambio sin nada en la fila 1 (cuatro
+    columnas en este curso) la fila 4 SI trae su nombre de pila y es la que
+    hay que usar. Por eso el orden de preferencia real (verificado, no
+    copiado de documentacion previa) es: fila1 -> fila4 -> fila3 -> fila2.
+
+    Ninguno de esos nombres se reproduce en este archivo ni llega al JSON:
+    ver la seccion de seudonimizacion mas abajo. Para saber que columna es
+    quien, se mira la sabana, que no esta en el repositorio.
 
   - A partir de la fila 6: bloques de 6 filas por franja horaria, repetidos
     por cada dia (con una fila en blanco de separacion entre dias, no todas
@@ -45,6 +48,7 @@ SABANA_20261021_9A_PROVISIONAL.xlsm (no asumida de documentacion anterior):
 from __future__ import annotations
 
 import datetime as _dt
+import re
 from dataclasses import dataclass, field
 
 import openpyxl
@@ -56,6 +60,46 @@ DIAS_VALIDOS = ("Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado",
 # Cabecera -> nombre visible del dia tal y como lo usa el JSON (la hoja trae
 # "MIÉRCOLES" en mayusculas; el JSON usa "Miércoles").
 _NORMALIZA_DIA = {d.upper(): d for d in DIAS_VALIDOS}
+
+
+# --- Seudonimizacion de cadetes individuales -------------------------------
+#
+# Algunas columnas de la sabana no son un grupo sino UNA persona: un cadete
+# sin grupo asignado, o un alumno de intercambio. Su etiqueta es, por tanto,
+# un nombre propio. Ese nombre NO puede llegar al JSON publicado: unido al
+# dia, la hora y el aula diria donde esta una persona concreta a cada hora.
+#
+# El filtro es una lista blanca, no una lista negra: se reconoce la FORMA de
+# una etiqueta de grupo colectivo y todo lo que no encaje se considera una
+# persona. Asi un nombre nuevo en una sabana futura queda cubierto sin tocar
+# el codigo, que es justo lo que no puede fallar en un job automatico.
+#
+# A cada persona se le da un seudonimo estable dentro de la importacion
+# ("Cadete 1", "Cadete 2"...) en lugar de una etiqueta comun: si dos cadetes
+# distintos coincidieran en la misma franja en aulas distintas, una etiqueta
+# comun los haria parecer el mismo grupo y merge_schedule.py lo denunciaria
+# como solapamiento inexistente, deteniendo la publicacion.
+#
+# La correspondencia entre seudonimo y persona no se guarda en ninguna parte
+# del repositorio, a proposito. Para saber quien es "Cadete 2" se mira la
+# sabana original, que vive en el correo y no aqui.
+
+_GRUPO_COLECTIVO = re.compile(r"^(?:G\d+[AB]?|IM\d+)(?:\s*\(.*\))?$", re.IGNORECASE)
+
+
+def es_grupo_colectivo(etiqueta: str) -> bool:
+    """True si la etiqueta designa a un grupo (G1, G3B, IM2, "G1 (4 CGA-ST)")
+    y no a una persona. Ante la duda devuelve False: preferimos seudonimizar
+    un grupo raro a publicar un nombre."""
+    return bool(_GRUPO_COLECTIVO.match(etiqueta.strip()))
+
+
+def construir_seudonimos(etiquetas) -> dict[str, str]:
+    """{etiqueta_original: seudonimo} para las etiquetas que son personas.
+    Orden alfabetico estable, para que el JSON no cambie entre ejecuciones
+    si no ha cambiado la sabana."""
+    personas = sorted({e for e in etiquetas if not es_grupo_colectivo(e)})
+    return {e: f"Cadete {n}" for n, e in enumerate(personas, start=1)}
 
 
 class ErrorImportacion(Exception):
@@ -89,15 +133,17 @@ def construir_mapa_columnas(ws) -> tuple[dict[int, str], dict[int, str]]:
     ``mapa``: {columna: etiqueta_de_grupo}, con el orden de preferencia
     verificado celda a celda contra la sabana real: fila4 ("Grupo") primero
     -- es la unica fila que SIEMPRE esta rellena cuando la columna es un
-    grupo normal (G1..G6, IM1, IM2, G1A/G1B, KALIL/SOPHIE/HENRY/BRANUM...) --
+    grupo normal (G1..G6, IM1, IM2, G1A/G1B) o un alumno de intercambio --
     y solo si la fila 4 esta vacia se cae a fila1 (ahi es donde aparece el
-    nombre propio de un cadete SIN grupo asignado, p.ej. TORRENTE_LA_PISA o
-    EDWIN), despues fila3, despues fila2.
+    nombre propio de un cadete SIN grupo asignado), despues fila3, fila2.
+
+    Las etiquetas que salen de aqui pueden ser nombres de persona. No se
+    publican tal cual: ``agrupar`` las sustituye por un seudonimo.
 
     IMPORTANTE (verificado, no asumido): la fila 1 ("Nombre alumno") tambien
     se usa, en columnas que SI tienen grupo en la fila 4, para anotar que un
-    cadete suelto de otro origen (p.ej. "PORTUGUESES", "BREST",
-    "USNA Y BREST") comparte esa franja -- no es el nombre de la columna.
+    cadete suelto de otro origen (una academia extranjera, p.ej.) comparte
+    esa franja -- no es el nombre de la columna.
     Un primer intento de este importador uso fila1 con prioridad sobre
     fila4 y eso convirtio la columna real de G4 en "PORTUGUESES" sin
     ningun cadete de ese grupo en la franja; de ahi que la prioridad
@@ -243,26 +289,39 @@ def agrupar(clases: list[ClaseFabric]) -> list[dict]:
     marcado o un error de la sabana, y no se decide por intuicion aqui."""
     agrupadas: dict[tuple, dict] = {}
     avisos: list[str] = []
+
+    # Las etiquetas que son nombres de persona se sustituyen por un seudonimo
+    # antes de construir nada. A partir de aqui el nombre real no vuelve a
+    # aparecer: ni en el JSON, ni en los avisos, ni en el log del pipeline.
+    seudonimos = construir_seudonimos(g for c in clases for g in c.grupos)
+
+    def publicable(etiqueta: str) -> str:
+        return seudonimos.get(etiqueta, etiqueta)
+
     for c in clases:
         clave = (c.dia, c.inicio, c.fin, c.tipo, c.aula)
         entrada = agrupadas.setdefault(clave, {"dia": c.dia, "inicio": c.inicio, "fin": c.fin,
                                                  "tipo": c.tipo, "aula": c.aula, "_grupos": [],
                                                  "_profesores": set()})
         for g in c.grupos:
-            if g in entrada["_grupos"]:
+            etiqueta = publicable(g)
+            if etiqueta in entrada["_grupos"]:
                 avisos.append(
-                    f"{c.dia} {c.inicio}-{c.fin} ({c.tipo}, aula {c.aula}): el grupo {g!r} "
+                    f"{c.dia} {c.inicio}-{c.fin} ({c.tipo}, aula {c.aula}): el grupo {etiqueta!r} "
                     f"aparece repetido en la misma franja (fila {c.fila_origen}, columna {c.columna_origen})."
                 )
             else:
-                entrada["_grupos"].append(g)
+                entrada["_grupos"].append(etiqueta)
         entrada["_profesores"].update(c.profesores)
         if c.anotacion_fila1:
+            # El texto de la fila 1 puede ser un origen ("PORTUGUESES") o un
+            # nombre propio. No se reproduce: el aviso da la columna, que es
+            # lo que hace falta para ir a mirarlo a la sabana.
             avisos.append(
                 f"{c.dia} {c.inicio}-{c.fin} ({c.tipo}, aula {c.aula}), columna {c.columna_origen} "
-                f"(grupo {c.grupos[0]!r}): la fila 1 de la sabana anota {c.anotacion_fila1!r} en esta "
-                "columna -- puede haber un cadete adicional de ese origen en la franja; revisar "
-                "manualmente, no se ha asumido ninguna interpretacion."
+                f"(grupo {publicable(c.grupos[0])!r}): la fila 1 de la sabana trae una anotacion en esta "
+                "columna -- puede haber un cadete adicional en la franja; mirar esa columna en la "
+                "sabana, no se ha asumido ninguna interpretacion."
             )
     resultado = []
     for entrada in agrupadas.values():

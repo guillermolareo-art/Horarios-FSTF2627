@@ -80,7 +80,7 @@
       "fin": "11:10",
       "tipo": "TEORIA",
       "aula": 45,
-      "grupos": "G5 (4 CGA-ST), G6 (4 CGA-ST), IM1 (4 CIM-ST), IM2 (4 CIM-ST), TORRENTE_LA_PISA, EDWIN, SOPHIE"
+      "grupos": "G5 (4 CGA-ST), G6 (4 CGA-ST), IM1 (4 CIM-ST), IM2 (4 CIM-ST), Cadete 3, Cadete 1, Cadete 2"
     },
     {
       "dia": "Lunes",
@@ -88,7 +88,7 @@
       "fin": "12:05",
       "tipo": "TEORIA",
       "aula": 45,
-      "grupos": "G5 (4 CGA-ST), G6 (4 CGA-ST), IM1 (4 CIM-ST), IM2 (4 CIM-ST), TORRENTE_LA_PISA, EDWIN, SOPHIE"
+      "grupos": "G5 (4 CGA-ST), G6 (4 CGA-ST), IM1 (4 CIM-ST), IM2 (4 CIM-ST), Cadete 3, Cadete 1, Cadete 2"
     },
     {
       "dia": "Lunes",
@@ -112,7 +112,7 @@
       "fin": "15:25",
       "tipo": "SEMINARIO",
       "aula": 45,
-      "grupos": "IM1 (4 CIM-ST), IM2 (4 CIM-ST), TORRENTE_LA_PISA, EDWIN"
+      "grupos": "IM1 (4 CIM-ST), IM2 (4 CIM-ST), Cadete 3, Cadete 1"
     },
     {
       "dia": "Miércoles",
@@ -144,7 +144,7 @@
       "fin": "13:00",
       "tipo": "SEMINARIO",
       "aula": 40,
-      "grupos": "G6 (4 CGA-ST), SOPHIE"
+      "grupos": "G6 (4 CGA-ST), Cadete 2"
     },
     {
       "dia": "Jueves",
@@ -160,7 +160,7 @@
       "fin": "13:00",
       "tipo": "SEMINARIO",
       "aula": 45,
-      "grupos": "SOPHIE"
+      "grupos": "Cadete 2"
     }
   ],
   "proximaSemana": null
