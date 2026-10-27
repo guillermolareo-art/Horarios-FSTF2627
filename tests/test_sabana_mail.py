@@ -1,14 +1,14 @@
 """
-Tests contra correos REALES del buzon institucional de coordinacion de
-horarios (recogidos con mcp__Gmail__search_threads / get_message en la
-auditoria de una sesion anterior, semanas 2B/3A/4B de septiembre 2026). No
-son datos sinteticos inventados: son el asunto, fecha y nombre de adjunto
-reales de cada mensaje, tal como los devolvio Gmail.
+Tests contra los correos de la cuenta institucional de coordinacion de horarios
+(recogidos con mcp__Gmail__search_threads / get_message en la auditoria de la
+sesion anterior, semanas 2B/3A/4B de septiembre 2026). No son datos sinteticos
+inventados: son el asunto, fecha y nombre de adjunto reales de cada mensaje,
+tal como los devolvio Gmail.
 
-Lo que SI esta sustituido, a proposito, son los datos de personas concretas.
-Este repositorio es publico: la direccion de un companero y el texto de su
-correo no son del autor para publicarlos. Donde hace falta un remitente que
-no sea el esperado, se usa una direccion ficticia del mismo dominio.
+Este repositorio es publico: los mensajes de personas concretas van con
+remitente y cuerpo anonimizados. Solo se conserva literal lo que envia la
+cuenta de coordinacion, que es una direccion de funcion, no personal, y de la
+que depende la logica (REMITENTE_ESPERADO en scripts/sabana_mail.py).
 """
 from datetime import datetime, timezone, date
 
@@ -102,8 +102,9 @@ def test_correo_3a_provisional_con_aulas():
 
 
 def test_respuesta_de_otro_profesor_se_descarta_aunque_tenga_remitente_similar():
-    # Otro profesor respondiendo al hilo: no es el remitente esperado.
-    # Direccion y cuerpo ficticios; lo que se prueba es la forma, no el texto.
+    # Otro profesor del CUD respondiendo al hilo: mismo dominio, pero no es el
+    # remitente esperado. Remitente y cuerpo anonimizados a proposito (este
+    # repositorio es publico); lo que prueba el caso es el dominio comun.
     c = correo(
         message_id="1a08a1c3f1d1e7f5",
         remitente="otro.profesor@cud.uvigo.es",
