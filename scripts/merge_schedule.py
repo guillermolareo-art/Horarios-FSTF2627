@@ -18,8 +18,10 @@ el importador cubren por si solos:
 """
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 
+from scripts.import_fabric import DIAS_VALIDOS as _DIAS_ORDEN
 from scripts.sabana_mail import semana_lunes
 from datetime import date, datetime
 
@@ -102,11 +104,34 @@ def _codigo_semana(archivo: str) -> str:
 
 
 def _contar_por_tipo(clases: list[dict]) -> dict:
+    """Recuento semanal "de verdad" para el historial -- misma logica,
+    deliberadamente identica, que contarPorTipoUnico() del Artifact de
+    Claude (y de artifact.html), para que el historial salga igual en los
+    dos sitios. TEORIA cuenta cada fila (repetirse varias veces por semana
+    es normal ahi). Para SEMINARIO/LABORATORIO: si el mismo grupo ya conto
+    para ese tipo en una franja anterior de la misma semana (p.ej. un
+    seminario duplicado por error de la sabana en dos dias distintos), esa
+    fila repetida no se vuelve a contar -- se recorre en orden de dia y
+    hora, y se cuenta la primera aparicion cronologica de cada grupo."""
     cuentas = {"teoria": 0, "seminario": 0, "laboratorio": 0}
-    for c in clases:
-        tipo = c["tipo"].upper()
+    vistos: dict[str, set[str]] = {"seminario": set(), "laboratorio": set()}
+    ordenadas = sorted(clases, key=lambda c: (_DIAS_ORDEN.index(c["dia"]), _minutos(c["inicio"])))
+    for c in ordenadas:
+        tipo = (c.get("tipo") or "").upper()
         clave = "seminario" if tipo.startswith("SEM") else "laboratorio" if tipo.startswith("LAB") else "teoria"
-        cuentas[clave] += 1
+        if clave == "teoria":
+            cuentas["teoria"] += 1
+            continue
+        grupos = [
+            re.sub(r"\s*\([^)]*\)\s*", "", g).strip().upper()
+            for g in (c.get("grupos") or "").split(",")
+        ]
+        grupos = [g for g in grupos if g]
+        vistos_tipo = vistos[clave]
+        aporta_algo_nuevo = not grupos or any(g not in vistos_tipo for g in grupos)
+        if aporta_algo_nuevo:
+            cuentas[clave] += 1
+        vistos_tipo.update(grupos)
     return cuentas
 
 
