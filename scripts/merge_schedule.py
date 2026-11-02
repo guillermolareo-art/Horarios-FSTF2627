@@ -187,6 +187,10 @@ def fusionar(
     nuevo["comprobado"] = datetime.now().strftime("%Y-%m-%d %H:%M")
     # Si la proximaSemana que ya teniamos resulta ser justo esta semana que
     # acaba de llegar, se limpia -- ya no es "la que viene", es la actual.
-    if nuevo.get("proximaSemana", {}).get("semanaInicio") == semana_destino.isoformat():
+    # "proximaSemana" puede venir como null (no solo ausente) en el JSON ya
+    # publicado -- .get(..., {}) no cubre ese caso porque el default de
+    # dict.get() solo se usa cuando la clave falta, no cuando vale None.
+    proxima_vigente = nuevo.get("proximaSemana") or {}
+    if proxima_vigente.get("semanaInicio") == semana_destino.isoformat():
         nuevo["proximaSemana"] = None
     return ResultadoFusion(datos=nuevo, problemas=avisos_perdidas)
