@@ -131,6 +131,19 @@ def ejecutar(hoy: date | None = None) -> bool:
         datos_actuales = resultado.datos
         cambios_aplicados = True
         estado.marcar_procesado(sc.message_id)
+        # Cualquier otro candidato pendiente para esta MISMA semana destino
+        # quedo superado por sc (es mas antiguo: ultima_por_semana_destino
+        # solo deja pasar al mas reciente). Si no se marca tambien como
+        # procesado, en una ejecucion futura -- una vez sc ya este marcado
+        # y por tanto fuera de "pendientes" -- ese candidato mas viejo
+        # reaparece como el unico pendiente de la semana y "gana" por
+        # defecto, pisando con una version ANTERIOR la que ya se habia
+        # publicado (bug real detectado: una sabana "actualizada" vieja
+        # sustituyo sin querer a la "casi definitiva" mas reciente ya
+        # fusionada en una ejecucion anterior).
+        for otro in pendientes:
+            if otro.semana_destino_lunes == semana_destino and otro.message_id != sc.message_id:
+                estado.marcar_procesado(otro.message_id)
 
     if cambios_aplicados:
         RUTA_DATOS.write_text(json.dumps(datos_actuales, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
