@@ -178,9 +178,9 @@
     }
   ],
   "proximaSemana": {
-    "archivo": "SABANA_20261102_11A_PROVISIONAL.xlsm",
-    "actualizado": "2026-11-02",
-    "provisional": true,
+    "archivo": "SABANA_20261104_11A_PROVISIONAL.xlsm",
+    "actualizado": "2026-11-04",
+    "provisional": false,
     "semanaInicio": "2026-11-09",
     "clases": []
   }
