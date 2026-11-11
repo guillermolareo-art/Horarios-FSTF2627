@@ -178,7 +178,7 @@
     }
   ],
   "proximaSemana": {
-    "archivo": "SABANA_20261110_12B_PROVISIONAL.xlsm",
+    "archivo": "SABANA_20261110_12A_PROVISIONAL_ACTUALIZACION.xlsm",
     "actualizado": "2026-11-10",
     "provisional": true,
     "semanaInicio": "2026-11-16",
@@ -237,23 +237,7 @@
         "fin": "17:15",
         "tipo": "SEMINARIO",
         "aula": 51,
-        "grupos": "IM1 (4 CIM-ST), IM2 (4 CIM-ST)"
-      },
-      {
-        "dia": "Martes",
-        "inicio": "16:25",
-        "fin": "17:15",
-        "tipo": "SEMINARIO",
-        "aula": null,
-        "grupos": "Cadete 3, Cadete 1"
-      },
-      {
-        "dia": "Miércoles",
-        "inicio": "10:20",
-        "fin": "11:10",
-        "tipo": "TEORIA",
-        "aula": 40,
-        "grupos": "Cadete 2"
+        "grupos": "IM1 (4 CIM-ST), IM2 (4 CIM-ST), Cadete 3, Cadete 1"
       },
       {
         "dia": "Miércoles",
