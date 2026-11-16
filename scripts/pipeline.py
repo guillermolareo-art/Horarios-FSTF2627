@@ -4,14 +4,16 @@ merge_schedule.py para producir (o no) una nueva version de
 data/fstf-2627.json a partir de Gmail. Pensado para correr en GitHub
 Actions via update-fabric.yml.
 
-Filosofia de errores: CUALQUIER problema (ambiguedad de correo, adjunto
-ambiguo, solapamiento, intento de pisar una definitiva con una
-provisional...) hace que el script termine con codigo de salida distinto
-de 0 y SIN escribir nada en data/fstf-2627.json. El horario publicado
-anterior se conserva intacto (requisito 12) y el mensaje de error, con todo
-el detalle, va a la salida estandar para que aparezca en el log de Actions
-y se pueda convertir en el cuerpo de un PR o un issue -- nunca se decide
-una interpretacion dudosa por cuenta propia.
+Filosofia de errores: un problema REAL (correo ambiguo, credenciales
+rotas, solapamiento, horas mal formadas) hace que el script termine con
+codigo de salida distinto de 0 y SIN escribir nada en data/fstf-2627.json
+-- el horario publicado anterior se conserva intacto y el detalle va a la
+salida estandar para que aparezca en el log de Actions. Un bloqueo
+ESPERADO y correcto (p.ej. una provisional mas vieja que la definitiva ya
+publicada, o una sabana que no es ni de esta semana ni de la siguiente)
+NO es un error: se registra como aviso informativo y el script termina
+con exit code 0, para no generar notificaciones de fallo quando no ha
+pasado nada malo.
 
 Este script NO llama a ningun modelo de IA. Toda la logica es la de los
 otros cuatro modulos, deterministas y ya probados con pytest.
@@ -83,6 +85,7 @@ def ejecutar(hoy: date | None = None) -> bool:
 
     ganadoras = ultima_por_semana_destino(pendientes)
     cambios_aplicados = False
+    estado_modificado = False
     avisos_totales: list[str] = []
 
     for semana_destino, sc in sorted(ganadoras.items()):
@@ -122,36 +125,44 @@ def ejecutar(hoy: date | None = None) -> bool:
             es_para_proxima_semana=es_proxima,
         )
         if resultado.datos is None:
-            raise FalloPipeline(
-                f"No se aplica {sc.archivo} (mensaje {sc.message_id}):\n- "
-                + "\n- ".join(resultado.problemas)
+            if resultado.bloqueo_es_error:
+                # Fallo real (datos invalidos: solapamientos, horas mal
+                # formadas...): se para todo el pipeline y se marca el job
+                # como fallido para que llegue la notificacion.
+                raise FalloPipeline(
+                    f"No se aplica {sc.archivo} (mensaje {sc.message_id}):\n- "
+                    + "\n- ".join(resultado.problemas)
+                )
+            # Bloqueo esperado y correcto (p.ej. una provisional mas vieja
+            # que la definitiva ya publicada): no es un error, no se marca
+            # el job como fallido ni se envia notificacion por esto. Se
+            # deja constancia en el log y se marca como procesada para no
+            # volver a intentarlo cada dia con el mismo correo ya superado.
+            avisos_totales.append(
+                f"Se ignora {sc.archivo} (mensaje {sc.message_id}, sin marcar error): "
+                + "; ".join(resultado.problemas)
             )
+            estado.marcar_procesado(sc.message_id)
+            estado_modificado = True
+            continue
         avisos_totales.extend(avisos_import)
         avisos_totales.extend(resultado.problemas)  # avisos no bloqueantes que si se publicaron
         datos_actuales = resultado.datos
         cambios_aplicados = True
+        estado_modificado = True
         estado.marcar_procesado(sc.message_id)
-        # Cualquier otro candidato pendiente para esta MISMA semana destino
-        # quedo superado por sc (es mas antiguo: ultima_por_semana_destino
-        # solo deja pasar al mas reciente). Si no se marca tambien como
-        # procesado, en una ejecucion futura -- una vez sc ya este marcado
-        # y por tanto fuera de "pendientes" -- ese candidato mas viejo
-        # reaparece como el unico pendiente de la semana y "gana" por
-        # defecto, pisando con una version ANTERIOR la que ya se habia
-        # publicado (bug real detectado: una sabana "actualizada" vieja
-        # sustituyo sin querer a la "casi definitiva" mas reciente ya
-        # fusionada en una ejecucion anterior).
-        for otro in pendientes:
-            if otro.semana_destino_lunes == semana_destino and otro.message_id != sc.message_id:
-                estado.marcar_procesado(otro.message_id)
 
     if cambios_aplicados:
         RUTA_DATOS.write_text(json.dumps(datos_actuales, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    if estado_modificado:
         guardar_estado(estado)
-        if avisos_totales:
-            print("AVISOS (revisar en el PR, no han bloqueado la publicacion):", file=sys.stderr)
-            for a in avisos_totales:
-                print(f"- {a}", file=sys.stderr)
+    if avisos_totales:
+        print(
+            "AVISOS (revisar el log; algunos pueden ya estar publicados y otros solo informativos):",
+            file=sys.stderr,
+        )
+        for a in avisos_totales:
+            print(f"- {a}", file=sys.stderr)
     return cambios_aplicados
 
 

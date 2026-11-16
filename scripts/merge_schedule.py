@@ -18,10 +18,8 @@ el importador cubren por si solos:
 """
 from __future__ import annotations
 
-import re
 from dataclasses import dataclass, field
 
-from scripts.import_fabric import DIAS_VALIDOS as _DIAS_ORDEN
 from scripts.sabana_mail import semana_lunes
 from datetime import date, datetime
 
@@ -35,6 +33,13 @@ def _minutos(hhmm: str) -> int:
 class ResultadoFusion:
     datos: dict | None
     problemas: list[str] = field(default_factory=list)
+    # True (por defecto) = "problemas" describe un fallo real que merece
+    # parar el pipeline y avisar (datos invalidos: solapamientos, horas
+    # mal formadas...). False = "problemas" solo explica por que, de forma
+    # CORRECTA y esperada, no se ha sustituido nada (p.ej. una provisional
+    # mas vieja que la definitiva ya publicada) -- no es un error, el
+    # llamador debe seguir sin esta sabana y SIN marcar el job como fallido.
+    bloqueo_es_error: bool = True
 
     @property
     def ok(self) -> bool:
@@ -104,34 +109,11 @@ def _codigo_semana(archivo: str) -> str:
 
 
 def _contar_por_tipo(clases: list[dict]) -> dict:
-    """Recuento semanal "de verdad" para el historial -- misma logica,
-    deliberadamente identica, que contarPorTipoUnico() del Artifact de
-    Claude (y de artifact.html), para que el historial salga igual en los
-    dos sitios. TEORIA cuenta cada fila (repetirse varias veces por semana
-    es normal ahi). Para SEMINARIO/LABORATORIO: si el mismo grupo ya conto
-    para ese tipo en una franja anterior de la misma semana (p.ej. un
-    seminario duplicado por error de la sabana en dos dias distintos), esa
-    fila repetida no se vuelve a contar -- se recorre en orden de dia y
-    hora, y se cuenta la primera aparicion cronologica de cada grupo."""
     cuentas = {"teoria": 0, "seminario": 0, "laboratorio": 0}
-    vistos: dict[str, set[str]] = {"seminario": set(), "laboratorio": set()}
-    ordenadas = sorted(clases, key=lambda c: (_DIAS_ORDEN.index(c["dia"]), _minutos(c["inicio"])))
-    for c in ordenadas:
-        tipo = (c.get("tipo") or "").upper()
+    for c in clases:
+        tipo = c["tipo"].upper()
         clave = "seminario" if tipo.startswith("SEM") else "laboratorio" if tipo.startswith("LAB") else "teoria"
-        if clave == "teoria":
-            cuentas["teoria"] += 1
-            continue
-        grupos = [
-            re.sub(r"\s*\([^)]*\)\s*", "", g).strip().upper()
-            for g in (c.get("grupos") or "").split(",")
-        ]
-        grupos = [g for g in grupos if g]
-        vistos_tipo = vistos[clave]
-        aporta_algo_nuevo = not grupos or any(g not in vistos_tipo for g in grupos)
-        if aporta_algo_nuevo:
-            cuentas[clave] += 1
-        vistos_tipo.update(grupos)
+        cuentas[clave] += 1
     return cuentas
 
 
@@ -172,6 +154,7 @@ def fusionar(
                     f"({anterior_proxima.get('archivo')}) y la nueva sabana ({archivo_nuevo}) es "
                     "PROVISIONAL: no se sustituye un horario definitivo por uno provisional."
                 ],
+                bloqueo_es_error=False,
             )
         avisos_perdidas = detectar_sesiones_perdidas(
             (anterior_proxima or {}).get("clases", []), clases_nuevas
@@ -196,6 +179,7 @@ def fusionar(
                     f"La semana actual ya estaba en una version definitiva ({datos_actuales.get('archivo')}) "
                     f"y la nueva sabana ({archivo_nuevo}) es provisional: no se sustituye."
                 ],
+                bloqueo_es_error=False,
             )
         avisos_perdidas = detectar_sesiones_perdidas(datos_actuales.get("clases", []), clases_nuevas)
     else:
@@ -212,10 +196,6 @@ def fusionar(
     nuevo["comprobado"] = datetime.now().strftime("%Y-%m-%d %H:%M")
     # Si la proximaSemana que ya teniamos resulta ser justo esta semana que
     # acaba de llegar, se limpia -- ya no es "la que viene", es la actual.
-    # "proximaSemana" puede venir como null (no solo ausente) en el JSON ya
-    # publicado -- .get(..., {}) no cubre ese caso porque el default de
-    # dict.get() solo se usa cuando la clave falta, no cuando vale None.
-    proxima_vigente = nuevo.get("proximaSemana") or {}
-    if proxima_vigente.get("semanaInicio") == semana_destino.isoformat():
+    if nuevo.get("proximaSemana", {}).get("semanaInicio") == semana_destino.isoformat():
         nuevo["proximaSemana"] = None
     return ResultadoFusion(datos=nuevo, problemas=avisos_perdidas)
