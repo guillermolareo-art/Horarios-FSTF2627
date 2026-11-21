@@ -1,4 +1,4 @@
-import { validateSchedule } from "../schedule-model.js?v=2026-11-21-print-1";
+import { validateSchedule } from "../schedule-model.js?v=2026-11-21-print-2";
 
 export async function readScheduleFile(file, config) {
   const value = JSON.parse(await file.text());

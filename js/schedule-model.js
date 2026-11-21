@@ -101,3 +101,18 @@ export function classKey(item) {
 export function filterPrintClasses(classes, excludedKeys) {
   return (classes || []).filter((item) => !excludedKeys.has(classKey(item)));
 }
+
+export function concurrentGroups(classes) {
+  const groups = [];
+  const lookup = new Map();
+  for (const item of classes || []) {
+    const key = `${item.inicio}|${item.fin}`;
+    if (!lookup.has(key)) {
+      const group = { inicio: item.inicio, fin: item.fin, items: [] };
+      lookup.set(key, group);
+      groups.push(group);
+    }
+    lookup.get(key).items.push(item);
+  }
+  return groups.sort((a, b) => minutes(a.inicio) - minutes(b.inicio));
+}

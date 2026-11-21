@@ -127,6 +127,12 @@ nav.days a:hover{color:var(--ink);}
   font-family:"IBM Plex Mono",monospace;font-size:9.5px;font-weight:700;
   letter-spacing:.06em;color:var(--accent);margin-bottom:5px;
 }
+.slot-concurrent{gap:4px;}
+.concurrent-selections{display:flex;flex-direction:column;gap:3px;}
+.concurrent-line{display:flex;align-items:center;gap:7px;line-height:1.35;flex-wrap:wrap;}
+.concurrent-line .print-select{margin:0;}
+.concurrent-room{font-size:12px;font-weight:700;white-space:nowrap;}
+.concurrent-groups{font-size:12.5px;}
 .print-select{
   display:inline-flex;align-items:center;gap:7px;margin-top:2px;
   font-size:12px;color:var(--muted);cursor:pointer;

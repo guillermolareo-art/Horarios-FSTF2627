@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { classKey, filterPrintClasses, findFirstClass, findNextClass, scheduleDays } from "../js/schedule-model.js";
+import { classKey, concurrentGroups, filterPrintClasses, findFirstClass, findNextClass, scheduleDays } from "../js/schedule-model.js";
 
 const daysOrder = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
 
@@ -42,4 +42,14 @@ test("filtra sesiones excluidas sin mezclar franjas simultaneas", () => {
   ];
   const excluded = new Set([classKey(clases[1])]);
   assert.deepEqual(filterPrintClasses(clases, excluded), [clases[0]]);
+});
+
+test("agrupa sesiones simultaneas y mantiene distintas aulas y grupos", () => {
+  const clases = [
+    { dia: "Martes", inicio: "14:35", fin: "15:25", tipo: "LABORATORIO", grupos: "IM1, IM2", aula: 50 },
+    { dia: "Martes", inicio: "14:35", fin: "15:25", tipo: "LABORATORIO", grupos: "Cadete 2", aula: 45 },
+  ];
+  const groups = concurrentGroups(clases);
+  assert.equal(groups.length, 1);
+  assert.deepEqual(groups[0].items, clases);
 });

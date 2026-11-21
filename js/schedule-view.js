@@ -1,4 +1,4 @@
-import { classKey, countTypes, filterPrintClasses, findFirstClass, findNextClass, minutes, scheduleDays, shortGroups, typeKey, weekCode } from "./schedule-model.js?v=2026-11-21-print-1";
+import { classKey, concurrentGroups, countTypes, filterPrintClasses, findFirstClass, findNextClass, minutes, scheduleDays, shortGroups, typeKey, weekCode } from "./schedule-model.js?v=2026-11-21-print-2";
 
 function node(tag, className, text) {
   const el = document.createElement(tag);
@@ -105,6 +105,40 @@ export function createScheduleView(config, onWeekChange) {
     container.append(card);
   }
 
+  function addConcurrentCard(container, group, flags = {}, onSelectionChange) {
+    const card = node("article", ["slot", "slot-concurrent", flags.isNow && "is-now", flags.isPast && "is-past", flags.isNext && "is-next"].filter(Boolean).join(" "));
+    if (flags.isNext) card.append(node("div", "next-tag", "PRÓXIMA CLASE"));
+
+    const row = node("div", "slot-row1");
+    const time = node("div", "t mono");
+    time.append(document.createTextNode(group.inicio), node("span", "end", group.fin));
+    row.append(time);
+    card.append(row);
+
+    const selections = node("div", "concurrent-selections");
+    group.items.forEach((item) => {
+      const line = node("div", "concurrent-line");
+      const label = node("label", "print-select");
+      const checkbox = node("input");
+      checkbox.type = "checkbox";
+      checkbox.checked = !excludedPrintKeys.has(classKey(item));
+      checkbox.addEventListener("change", () => {
+        if (checkbox.checked) excludedPrintKeys.delete(classKey(item));
+        else excludedPrintKeys.add(classKey(item));
+        onSelectionChange?.();
+      });
+      label.append(checkbox);
+
+      const room = node("span", "concurrent-room", `Aula ${item.aula ?? "—"}`);
+      const badge = node("span", `badge ${typeKey(item.tipo)}`, item.tipo);
+      const groups = node("span", "concurrent-groups", shortGroups(item.grupos));
+      line.append(label, room, badge, groups);
+      selections.append(line);
+    });
+    card.append(selections);
+    container.append(card);
+  }
+
   function renderSchedule(schedule, preview) {
     const active = preview ? schedule.proximaSemana : schedule;
     const days = scheduleDays(active.clases, daysOrder);
@@ -146,17 +180,18 @@ export function createScheduleView(config, onWeekChange) {
       ui.nav.append(anchor);
       const section = node("section", "day");
       section.id = `d-${day}`;
+      const groupedClasses = concurrentGroups(classes);
       const heading = node("h2", "", day);
-      heading.append(node("span", "count", `${classes.length} clase${classes.length === 1 ? "" : "s"}`));
+      heading.append(node("span", "count", `${groupedClasses.length} franja${groupedClasses.length === 1 ? "" : "s"}`));
       section.append(heading);
       const dayIndex = daysOrder.indexOf(day);
-      classes.forEach((item) => {
-        const start = minutes(item.inicio);
-        const end = minutes(item.fin);
-        addClassCard(section, item, {
+      groupedClasses.forEach((group) => {
+        const start = minutes(group.inicio);
+        const end = minutes(group.fin);
+        addConcurrentCard(section, group, {
           isNow: !preview && dayIndex === upcoming?.todayIndex && upcoming.nowMinute >= start && upcoming.nowMinute < end,
           isPast: !preview && (dayIndex < upcoming?.todayIndex || (dayIndex === upcoming?.todayIndex && upcoming.nowMinute >= end)),
-          isNext: !preview && upcoming?.day === day && upcoming.item === item
+          isNext: !preview && upcoming?.day === day && group.items.includes(upcoming.item)
         }, () => renderPrintSheet(schedule, preview));
       });
       ui.days.append(section);
@@ -168,7 +203,10 @@ export function createScheduleView(config, onWeekChange) {
     printPreview = preview;
     const active = preview ? schedule.proximaSemana : schedule;
     const selectedClasses = filterPrintClasses(active?.clases || [], excludedPrintKeys);
-    const days = scheduleDays(selectedClasses, daysOrder);
+    const days = scheduleDays(selectedClasses, daysOrder).map(([day, classes]) => [
+      day,
+      concurrentGroups(classes),
+    ]);
     const table = node("table");
     const etiquetaProvisional = active?.provisional ? " · PROVISIONAL" : "";
     table.append(node("caption", "", `Resumen días y horas · ${schedule.title || config.title}${etiquetaProvisional}`));
@@ -177,16 +215,20 @@ export function createScheduleView(config, onWeekChange) {
     days.forEach(([day]) => headerRow.append(node("th", "", day)));
     head.append(headerRow);
     const body = node("tbody");
-    const maxRows = Math.max(0, ...days.map(([, classes]) => classes.length));
+    const maxRows = Math.max(0, ...days.map(([, groups]) => groups.length));
     for (let rowIndex = 0; rowIndex < maxRows; rowIndex += 1) {
       const row = node("tr");
-      for (const [, classes] of days) {
-        const item = classes[rowIndex];
+      for (const [, groups] of days) {
+        const group = groups[rowIndex];
         const cell = node("td");
-        if (item) {
-          cell.append(rowIndex === 0 ? node("span", "hora-borde", item.inicio) : document.createTextNode(item.inicio));
+        if (group) {
+          cell.append(rowIndex === 0 ? node("span", "hora-borde", group.inicio) : document.createTextNode(group.inicio));
           cell.append(document.createTextNode(" - "));
-          cell.append(rowIndex === classes.length - 1 ? node("span", "hora-borde", item.fin) : document.createTextNode(item.fin));
+          cell.append(rowIndex === groups.length - 1 ? node("span", "hora-borde", group.fin) : document.createTextNode(group.fin));
+          group.items.forEach((item) => {
+            cell.append(document.createElement("br"));
+            cell.append(document.createTextNode(`Aula ${item.aula ?? "—"} · ${shortGroups(item.grupos)}`));
+          });
         }
         row.append(cell);
       }
