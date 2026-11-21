@@ -181,7 +181,7 @@ def test_viernes_con_adjunto_final_resuelve_texto_mixto_como_definitivo():
     assert clasificar(c).es_definitiva is True
 
 
-def test_viernes_resuelve_texto_mixto_por_evidencia_definitiva():
+def test_evidencia_definitiva_resuelve_texto_mixto():
     c = correo(
         message_id="mixed-not-final",
         fecha_envio=datetime(2026, 11, 20, 14, 0, tzinfo=UTC),
@@ -190,6 +190,17 @@ def test_viernes_resuelve_texto_mixto_por_evidencia_definitiva():
         adjuntos=("SABANA_20261120_13B_PROVISIONAL.xlsm",),
     )
     assert clasificar(c).es_definitiva is True
+
+
+def test_solo_provisional_sigue_siendo_provisional_sin_definitiva():
+    c = correo(
+        message_id="provisional-only",
+        fecha_envio=datetime(2026, 11, 21, 14, 0, tzinfo=UTC),
+        asunto="Schedule provisional",
+        cuerpo_texto="This draft remains provisional.",
+        adjuntos=("SABANA_20261121_13B.xlsm",),
+    )
+    assert clasificar(c).es_definitiva is False
 
 
 def test_dos_adjuntos_en_el_mismo_correo_es_ambiguo_y_detiene_el_proceso():
