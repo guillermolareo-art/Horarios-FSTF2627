@@ -1,4 +1,4 @@
-import { classKey, concurrentGroups, countTypes, filterPrintClasses, findFirstClass, groupConsecutiveLaboratories, findNextClass, minutes, scheduleDays, shortGroups, typeKey, weekCode } from "./schedule-model.js?v=2026-11-21-print-3";
+import { classKey, concurrentGroups, countTypes, filterPrintClasses, findFirstClass, groupConsecutiveLaboratories, findNextClass, minutes, scheduleDays, shortGroups, typeKey, weekCode } from "./schedule-model.js?v=2026-11-21-colors-1";
 
 function node(tag, className, text) {
   const el = document.createElement(tag);
@@ -79,7 +79,7 @@ export function createScheduleView(config, onWeekChange) {
   }
 
   function addClassCard(container, item, flags = {}, onSelectionChange) {
-    const card = node("article", ["slot", flags.isNow && "is-now", flags.isPast && "is-past", flags.isNext && "is-next"].filter(Boolean).join(" "));
+    const card = node("article", ["slot", `slot-${typeKey(item.tipo)}`, flags.isNow && "is-now", flags.isPast && "is-past", flags.isNext && "is-next"].filter(Boolean).join(" "));
     if (flags.isNext) card.append(node("div", "next-tag", "PRÓXIMA CLASE"));
     const selection = node("label", "print-select");
     const checkbox = node("input");
@@ -117,7 +117,7 @@ export function createScheduleView(config, onWeekChange) {
 
     const selections = node("div", "concurrent-selections");
     group.items.forEach((item) => {
-      const line = node("div", "concurrent-line");
+      const line = node("div", `concurrent-line ${typeKey(item.tipo)}`);
       const label = node("label", "print-select");
       const checkbox = node("input");
       checkbox.type = "checkbox";
