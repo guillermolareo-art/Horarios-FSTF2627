@@ -1,6 +1,6 @@
-import { readScheduleFile } from "./adapters/json-schedule.js";
-import { validateSchedule } from "./schedule-model.js";
-import { createScheduleView } from "./schedule-view.js";
+import { readScheduleFile } from "./adapters/json-schedule.js?v=2026-11-21-print-1";
+import { validateSchedule } from "./schedule-model.js?v=2026-11-21-print-1";
+import { createScheduleView } from "./schedule-view.js?v=2026-11-21-print-1";
 
 const selector = document.getElementById("schedule-select");
 const fileInput = document.getElementById("schedule-files");

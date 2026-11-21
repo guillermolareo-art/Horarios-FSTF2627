@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { findFirstClass, findNextClass, scheduleDays } from "../js/schedule-model.js";
+import { classKey, filterPrintClasses, findFirstClass, findNextClass, scheduleDays } from "../js/schedule-model.js";
 
 const daysOrder = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
 
@@ -33,4 +33,13 @@ test("cuando ha terminado la semana actual toma la primera clase de la siguiente
     day: "Lunes",
     item: nextWeek[0][1][0],
   });
+});
+
+test("filtra sesiones excluidas sin mezclar franjas simultaneas", () => {
+  const clases = [
+    { dia: "Martes", inicio: "14:35", fin: "15:25", tipo: "LABORATORIO", grupos: "IM1", aula: 50 },
+    { dia: "Martes", inicio: "14:35", fin: "15:25", tipo: "LABORATORIO", grupos: "Cadete 2", aula: 45 },
+  ];
+  const excluded = new Set([classKey(clases[1])]);
+  assert.deepEqual(filterPrintClasses(clases, excluded), [clases[0]]);
 });

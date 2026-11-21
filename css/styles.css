@@ -127,6 +127,17 @@ nav.days a:hover{color:var(--ink);}
   font-family:"IBM Plex Mono",monospace;font-size:9.5px;font-weight:700;
   letter-spacing:.06em;color:var(--accent);margin-bottom:5px;
 }
+.print-select{
+  display:inline-flex;align-items:center;gap:7px;margin-top:2px;
+  font-size:12px;color:var(--muted);cursor:pointer;
+}
+.print-select input{width:17px;height:17px;accent-color:var(--accent);}
+.print-controls{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0;}
+.print-controls button{
+  border:1px solid var(--border);border-radius:8px;background:var(--surface);
+  color:var(--ink);padding:8px 10px;font:700 12px "IBM Plex Sans",sans-serif;
+}
+.slot.is-next{box-shadow:0 0 0 3px var(--accent),0 0 18px var(--accent-soft);}
 
 .week-history{margin-bottom:22px;}
 .week-history h3{
@@ -162,6 +173,7 @@ footer{margin-top:28px;padding-top:14px;border-top:1px solid var(--border);
   .week-tabs, .provisional-banner, .input-tools{display:none !important;}
   nav.days, #days{display:none !important;}
   .week-history{display:none !important;}
+  .print-controls,.print-select{display:none !important;}
   #print-sheet{display:block;}
   #print-sheet table{width:100%;border-collapse:collapse;font-size:14px;}
   #print-sheet caption{text-align:left;font-family:"Libre Franklin",sans-serif;font-weight:800;font-size:17px;margin-bottom:8px;color:#1b2430;}

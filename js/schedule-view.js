@@ -1,4 +1,4 @@
-import { countTypes, findFirstClass, findNextClass, minutes, scheduleDays, shortGroups, typeKey, weekCode } from "./schedule-model.js";
+import { classKey, countTypes, filterPrintClasses, findFirstClass, findNextClass, minutes, scheduleDays, shortGroups, typeKey, weekCode } from "./schedule-model.js?v=2026-11-21-print-1";
 
 function node(tag, className, text) {
   const el = document.createElement(tag);
@@ -8,15 +8,40 @@ function node(tag, className, text) {
 }
 
 export function createScheduleView(config, onWeekChange) {
+  const excludedPrintKeys = new Set();
+  let printSchedule = null;
+  let printPreview = false;
   const ui = {
     title: document.getElementById("app-title"), subtitle: document.getElementById("subtitle"),
     weekLabel: document.getElementById("week-label"), source: document.getElementById("source-label"),
     updated: document.getElementById("updated-label"), checked: document.getElementById("checked-label"),
     tabs: document.getElementById("week-tabs"), banner: document.getElementById("provisional-banner"),
     history: document.getElementById("week-history-body"), nav: document.getElementById("day-nav"),
-    days: document.getElementById("days"), print: document.getElementById("print-sheet")
+    days: document.getElementById("days"), print: document.getElementById("print-sheet"),
+    selectAllPrint: document.getElementById("select-all-print"),
+    selectNonePrint: document.getElementById("select-none-print"),
+    printSelected: document.getElementById("print-selected")
   };
   const daysOrder = config.daysOrder || ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+
+  function activeClassesForPrint() {
+    if (!printSchedule) return [];
+    return (printPreview ? printSchedule.proximaSemana : printSchedule)?.clases || [];
+  }
+
+  ui.selectAllPrint?.addEventListener("click", () => {
+    activeClassesForPrint().forEach((item) => excludedPrintKeys.delete(classKey(item)));
+    document.querySelectorAll(".print-select input").forEach((checkbox) => { checkbox.checked = true; });
+    if (printSchedule) renderPrintSheet(printSchedule, printPreview);
+  });
+  ui.selectNonePrint?.addEventListener("click", () => {
+    activeClassesForPrint().forEach((item) => excludedPrintKeys.add(classKey(item)));
+    document.querySelectorAll(".print-select input").forEach((checkbox) => { checkbox.checked = false; });
+    if (printSchedule) renderPrintSheet(printSchedule, printPreview);
+  });
+  ui.printSelected?.addEventListener("click", () => {
+    if (typeof window.print === "function") window.print();
+  });
 
   function renderTabs(schedule, view) {
     ui.tabs.replaceChildren();
@@ -53,9 +78,20 @@ export function createScheduleView(config, onWeekChange) {
     }
   }
 
-  function addClassCard(container, item, flags = {}) {
+  function addClassCard(container, item, flags = {}, onSelectionChange) {
     const card = node("article", ["slot", flags.isNow && "is-now", flags.isPast && "is-past", flags.isNext && "is-next"].filter(Boolean).join(" "));
     if (flags.isNext) card.append(node("div", "next-tag", "PRÓXIMA CLASE"));
+    const selection = node("label", "print-select");
+    const checkbox = node("input");
+    checkbox.type = "checkbox";
+    checkbox.checked = !excludedPrintKeys.has(classKey(item));
+    checkbox.addEventListener("change", () => {
+      if (checkbox.checked) excludedPrintKeys.delete(classKey(item));
+      else excludedPrintKeys.add(classKey(item));
+      onSelectionChange?.();
+    });
+    selection.append(checkbox, document.createTextNode(" Incluir al imprimir"));
+    card.append(selection);
     const row = node("div", "slot-row1");
     const time = node("div", "t mono");
     time.append(document.createTextNode(item.inicio), node("span", "end", item.fin));
@@ -121,16 +157,20 @@ export function createScheduleView(config, onWeekChange) {
           isNow: !preview && dayIndex === upcoming?.todayIndex && upcoming.nowMinute >= start && upcoming.nowMinute < end,
           isPast: !preview && (dayIndex < upcoming?.todayIndex || (dayIndex === upcoming?.todayIndex && upcoming.nowMinute >= end)),
           isNext: !preview && upcoming?.day === day && upcoming.item === item
-        });
+        }, () => renderPrintSheet(schedule, preview));
       });
       ui.days.append(section);
     }
   }
 
-  function renderPrintSheet(schedule) {
-    const days = scheduleDays(schedule.clases, daysOrder);
+  function renderPrintSheet(schedule, preview = false) {
+    printSchedule = schedule;
+    printPreview = preview;
+    const active = preview ? schedule.proximaSemana : schedule;
+    const selectedClasses = filterPrintClasses(active?.clases || [], excludedPrintKeys);
+    const days = scheduleDays(selectedClasses, daysOrder);
     const table = node("table");
-    const etiquetaProvisional = schedule.provisional ? " · PROVISIONAL" : "";
+    const etiquetaProvisional = active?.provisional ? " · PROVISIONAL" : "";
     table.append(node("caption", "", `Resumen días y horas · ${schedule.title || config.title}${etiquetaProvisional}`));
     const head = node("thead");
     const headerRow = node("tr");
@@ -153,8 +193,10 @@ export function createScheduleView(config, onWeekChange) {
       body.append(row);
     }
     table.append(head, body);
-    const totalMinutes = schedule.clases.reduce((sum, item) => sum + minutes(item.fin) - minutes(item.inicio), 0);
-    const meta = node("div", "meta", `Actualizado: ${schedule.actualizado} · ${schedule.clases.length} sesiones · ${Math.floor(totalMinutes / 60)}h ${totalMinutes % 60 ? `${totalMinutes % 60}min` : ""} lectivas${etiquetaProvisional}`);
+    const totalMinutes = selectedClasses.reduce((sum, item) => sum + minutes(item.fin) - minutes(item.inicio), 0);
+    const meta = node("div", "meta", selectedClasses.length
+      ? `Actualizado: ${active.actualizado} · ${selectedClasses.length} sesiones seleccionadas · ${Math.floor(totalMinutes / 60)}h ${totalMinutes % 60 ? `${totalMinutes % 60}min` : ""} lectivas${etiquetaProvisional}`
+      : "No hay sesiones seleccionadas para imprimir.");
     const summary = node("div", "summary");
     summary.append(table, meta);
     ui.print.replaceChildren(summary);
@@ -164,10 +206,11 @@ export function createScheduleView(config, onWeekChange) {
     render(schedule, view) {
       ui.title.textContent = schedule.title || config.title;
       ui.subtitle.textContent = schedule.subtitle || config.subtitle || "";
+      const preview = view === "proxima" && Boolean(schedule.proximaSemana?.clases?.length);
       renderTabs(schedule, view);
       renderHistory(schedule);
-      renderSchedule(schedule, view === "proxima" && Boolean(schedule.proximaSemana?.clases?.length));
-      renderPrintSheet(schedule);
+      renderSchedule(schedule, preview);
+      renderPrintSheet(schedule, preview);
     }
   };
 }

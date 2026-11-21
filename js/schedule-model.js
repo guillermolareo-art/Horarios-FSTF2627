@@ -86,3 +86,18 @@ export function findFirstClass(days) {
   }
   return { day: null, item: null };
 }
+
+export function classKey(item) {
+  return [
+    item.dia,
+    item.inicio,
+    item.fin,
+    item.tipo,
+    item.aula ?? "",
+    item.grupos,
+  ].join("|");
+}
+
+export function filterPrintClasses(classes, excludedKeys) {
+  return (classes || []).filter((item) => !excludedKeys.has(classKey(item)));
+}

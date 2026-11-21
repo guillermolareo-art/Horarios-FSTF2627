@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="color-scheme" content="light dark">
   <title>Horario modular</title>
-  <link rel="stylesheet" href="css/styles.css?v=2026-11-21-final-1">
+  <link rel="stylesheet" href="css/styles.css?v=2026-11-21-print-1">
 </head>
 <body>
   <main class="wrap">
@@ -41,9 +41,14 @@
     </section>
     <nav class="days" id="day-nav" aria-label="Ir a un día"></nav>
     <div id="days"></div>
+    <section class="print-controls" aria-label="Selección para imprimir">
+      <button type="button" id="select-all-print">Marcar todas</button>
+      <button type="button" id="select-none-print">Desmarcar todas</button>
+      <button type="button" id="print-selected">Imprimir selección</button>
+    </section>
     <div id="print-sheet"></div>
     <footer>Horario modular · generado a partir de datos JSON</footer>
   </main>
-  <script type="module" src="js/app.js?v=2026-11-21-final-1"></script>
+  <script type="module" src="js/app.js?v=2026-11-21-print-1"></script>
 </body>
 </html>
