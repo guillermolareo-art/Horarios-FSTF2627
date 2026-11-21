@@ -79,3 +79,10 @@ export function findNextClass(days, now, daysOrder = DEFAULT_DAYS) {
   }
   return { day: null, item: null, today, todayIndex, nowMinute };
 }
+
+export function findFirstClass(days) {
+  for (const [day, classes] of days) {
+    if (classes.length) return { day, item: classes[0] };
+  }
+  return { day: null, item: null };
+}

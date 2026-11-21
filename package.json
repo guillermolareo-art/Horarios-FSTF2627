@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "validate-schedules": "node scripts/validate-schedules.mjs"
+    "validate-schedules": "node scripts/validate-schedules.mjs",
+    "test:schedule-model": "node --test tests/schedule-model.test.mjs"
   }
 }

@@ -1,4 +1,4 @@
-import { countTypes, findNextClass, minutes, scheduleDays, shortGroups, typeKey, weekCode } from "./schedule-model.js";
+import { countTypes, findFirstClass, findNextClass, minutes, scheduleDays, shortGroups, typeKey, weekCode } from "./schedule-model.js";
 
 function node(tag, className, text) {
   const el = document.createElement(tag);
@@ -73,12 +73,27 @@ export function createScheduleView(config, onWeekChange) {
     const active = preview ? schedule.proximaSemana : schedule;
     const days = scheduleDays(active.clases, daysOrder);
     const now = new Date();
-    const upcoming = preview ? null : findNextClass(days, now, daysOrder);
+    let upcoming = preview ? null : findNextClass(days, now, daysOrder);
+    let upcomingNextWeek = null;
+    if (!preview && !upcoming.item && schedule.proximaSemana?.clases?.length) {
+      const nextDays = scheduleDays(schedule.proximaSemana.clases, daysOrder);
+      const first = findFirstClass(nextDays);
+      if (first.item) upcomingNextWeek = first;
+    }
     ui.source.textContent = active.archivo || "—";
     ui.updated.textContent = active.actualizado || "—";
     ui.checked.textContent = schedule.comprobado || schedule.actualizado || "—";
     ui.weekLabel.replaceChildren(document.createTextNode(`${days.length} días con clase${preview ? " — vista previa" : " esta semana"}`));
-    if (!preview && days.length && !upcoming.item) ui.weekLabel.append(node("p", "no-upcoming", "Ya no quedan clases programadas esta semana."));
+    if (!preview && upcomingNextWeek?.item) {
+      const next = upcomingNextWeek;
+      ui.weekLabel.append(node(
+        "p",
+        "no-upcoming",
+        `Próxima clase: ${next.day} ${next.item.inicio}–${next.item.fin} · Aula ${next.item.aula ?? "—"} · ${weekCode(schedule.proximaSemana.archivo)}`
+      ));
+    } else if (!preview && days.length && !upcoming.item) {
+      ui.weekLabel.append(node("p", "no-upcoming", "Ya no quedan clases programadas esta semana."));
+    }
     if (!days.length) ui.weekLabel.textContent = "Sin clases programadas esta semana.";
     ui.banner.hidden = !active.provisional;
     ui.banner.textContent = active.provisional
