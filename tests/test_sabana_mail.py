@@ -170,6 +170,29 @@ def test_contradiccion_en_el_mensaje_actual_sigue_requiriendo_revision():
         )
 
 
+def test_viernes_con_adjunto_final_resuelve_texto_mixto_como_definitivo():
+    c = correo(
+        message_id="friday-final",
+        fecha_envio=datetime(2026, 11, 20, 14, 0, tzinfo=UTC),
+        asunto="Schedule definitive",
+        cuerpo_texto="Synthetic provisional update.",
+        adjuntos=("SABANA_20261120_13B_FINAL.xlsm",),
+    )
+    assert clasificar(c).es_definitiva is True
+
+
+def test_texto_mixto_con_adjunto_no_final_sigue_requiriendo_revision():
+    c = correo(
+        message_id="mixed-not-final",
+        fecha_envio=datetime(2026, 11, 20, 14, 0, tzinfo=UTC),
+        asunto="Schedule definitive",
+        cuerpo_texto="Synthetic provisional update.",
+        adjuntos=("SABANA_20261120_13B_PROVISIONAL.xlsm",),
+    )
+    with pytest.raises(SabanaAmbigua):
+        clasificar(c)
+
+
 def test_dos_adjuntos_en_el_mismo_correo_es_ambiguo_y_detiene_el_proceso():
     c = correo(
         message_id="x1",

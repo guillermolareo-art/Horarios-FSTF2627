@@ -162,7 +162,16 @@ def clasificar(correo: CorreoCandidato) -> SabanaClasificada:
     fecha = correo.fecha_envio.astimezone(ZONA_HORARIA).date()
     semana_envio = semana_lunes(fecha)
     semana_destino = semana_envio + timedelta(days=7)
-    es_definitiva = clasificar_definitiva_o_provisional(correo.asunto, correo.cuerpo_texto)
+    try:
+        es_definitiva = clasificar_definitiva_o_provisional(correo.asunto, correo.cuerpo_texto)
+    except SabanaAmbigua:
+        archivo_mayusculas = adjuntos_sabana[0].upper()
+        evidencia_final_en_archivo = (
+            "FINAL" in archivo_mayusculas or "DEFINITIV" in archivo_mayusculas
+        )
+        if fecha.weekday() != 4 or not evidencia_final_en_archivo:
+            raise
+        es_definitiva = True
     return SabanaClasificada(
         message_id=correo.message_id,
         thread_id=correo.thread_id,
