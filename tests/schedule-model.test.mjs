@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { classKey, concurrentGroups, filterPrintClasses, findFirstClass, findNextClass, scheduleDays } from "../js/schedule-model.js";
+import { classKey, concurrentGroups, filterPrintClasses, findFirstClass, groupConsecutiveLaboratories, findNextClass, scheduleDays } from "../js/schedule-model.js";
 
 const daysOrder = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
 
@@ -52,4 +52,15 @@ test("agrupa sesiones simultaneas y mantiene distintas aulas y grupos", () => {
   const groups = concurrentGroups(clases);
   assert.equal(groups.length, 1);
   assert.deepEqual(groups[0].items, clases);
+});
+
+test("agrupa dos laboratorios consecutivos con la misma aula y grupos", () => {
+  const clases = [
+    { dia: "Lunes", inicio: "14:35", fin: "15:25", tipo: "LABORATORIO", grupos: "G3, G4", aula: 50 },
+    { dia: "Lunes", inicio: "15:30", fin: "16:20", tipo: "LABORATORIO", grupos: "G3, G4", aula: 50 },
+  ];
+  const grouped = groupConsecutiveLaboratories(clases);
+  assert.equal(grouped.length, 1);
+  assert.equal(grouped[0].inicio, "14:35");
+  assert.equal(grouped[0].fin, "16:20");
 });

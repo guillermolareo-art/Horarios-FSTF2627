@@ -1,4 +1,4 @@
-import { classKey, concurrentGroups, countTypes, filterPrintClasses, findFirstClass, findNextClass, minutes, scheduleDays, shortGroups, typeKey, weekCode } from "./schedule-model.js?v=2026-11-21-print-2";
+import { classKey, concurrentGroups, countTypes, filterPrintClasses, findFirstClass, groupConsecutiveLaboratories, findNextClass, minutes, scheduleDays, shortGroups, typeKey, weekCode } from "./schedule-model.js?v=2026-11-21-print-3";
 
 function node(tag, className, text) {
   const el = document.createElement(tag);
@@ -121,10 +121,13 @@ export function createScheduleView(config, onWeekChange) {
       const label = node("label", "print-select");
       const checkbox = node("input");
       checkbox.type = "checkbox";
-      checkbox.checked = !excludedPrintKeys.has(classKey(item));
+      const sourceKeys = item._sourceKeys || [classKey(item)];
+      checkbox.checked = sourceKeys.some((key) => !excludedPrintKeys.has(key));
       checkbox.addEventListener("change", () => {
-        if (checkbox.checked) excludedPrintKeys.delete(classKey(item));
-        else excludedPrintKeys.add(classKey(item));
+        sourceKeys.forEach((key) => {
+          if (checkbox.checked) excludedPrintKeys.delete(key);
+          else excludedPrintKeys.add(key);
+        });
         onSelectionChange?.();
       });
       label.append(checkbox);
@@ -141,7 +144,10 @@ export function createScheduleView(config, onWeekChange) {
 
   function renderSchedule(schedule, preview) {
     const active = preview ? schedule.proximaSemana : schedule;
-    const days = scheduleDays(active.clases, daysOrder);
+    const days = scheduleDays(active.clases, daysOrder).map(([day, classes]) => [
+      day,
+      groupConsecutiveLaboratories(classes),
+    ]);
     const now = new Date();
     let upcoming = preview ? null : findNextClass(days, now, daysOrder);
     let upcomingNextWeek = null;
@@ -205,7 +211,7 @@ export function createScheduleView(config, onWeekChange) {
     const selectedClasses = filterPrintClasses(active?.clases || [], excludedPrintKeys);
     const days = scheduleDays(selectedClasses, daysOrder).map(([day, classes]) => [
       day,
-      concurrentGroups(classes),
+      concurrentGroups(groupConsecutiveLaboratories(classes)),
     ]);
     const table = node("table");
     const etiquetaProvisional = active?.provisional ? " · PROVISIONAL" : "";

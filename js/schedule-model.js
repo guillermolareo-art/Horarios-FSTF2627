@@ -116,3 +116,30 @@ export function concurrentGroups(classes) {
   }
   return groups.sort((a, b) => minutes(a.inicio) - minutes(b.inicio));
 }
+
+export function groupConsecutiveLaboratories(classes) {
+  const result = [];
+  for (const item of classes || []) {
+    const current = result[result.length - 1];
+    if (
+      current
+      && String(item.tipo).toUpperCase().startsWith("LAB")
+      && String(current.tipo).toUpperCase().startsWith("LAB")
+      && String(item.aula ?? "") === String(current.aula ?? "")
+      && String(item.grupos).trim() === String(current.grupos).trim()
+      && minutes(item.inicio) >= minutes(current.fin)
+      && minutes(item.inicio) - minutes(current.fin) <= 15
+    ) {
+      const firstKey = classKey(current);
+      const secondKey = classKey(item);
+      current.fin = item.fin;
+      current._sourceKeys = [
+        ...(current._sourceKeys || [firstKey]),
+        secondKey,
+      ];
+    } else {
+      result.push({ ...item });
+    }
+  }
+  return result;
+}
