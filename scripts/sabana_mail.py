@@ -169,7 +169,14 @@ def clasificar(correo: CorreoCandidato) -> SabanaClasificada:
         evidencia_final_en_archivo = (
             "FINAL" in archivo_mayusculas or "DEFINITIV" in archivo_mayusculas
         )
-        if fecha.weekday() != 4 or not evidencia_final_en_archivo:
+        texto = f"{correo.asunto}\n{_texto_mensaje_actual(correo.cuerpo_texto)}"
+        evidencia_definitiva_en_texto = any(
+            patron.search(texto) for patron in PATRONES_DEFINITIVA
+        )
+        if (
+            fecha.weekday() != 4
+            or not (evidencia_final_en_archivo or evidencia_definitiva_en_texto)
+        ):
             raise
         es_definitiva = True
     return SabanaClasificada(
