@@ -1,7 +1,7 @@
 """
 Importador determinista (sin IA) de la hoja "SABANA 26_27" a la lista de
 clases de FABRIC, en el mismo formato que usan el repo
-(data/schedule.schema.json) y el Artifact de Claude.
+(data/schedule.schema.json) y el JSON publicado.
 
 Estructura real de la hoja, verificada celda a celda contra
 SABANA_20261021_9A_PROVISIONAL.xlsm (no asumida de documentacion anterior):
@@ -123,7 +123,7 @@ class ClaseFabric:
 
 def _hhmm(t) -> str:
     if not isinstance(t, _dt.time):
-        raise ErrorImportacion(f"Se esperaba una hora y se encontro: {t!r}")
+        raise ErrorImportacion("Se esperaba una hora y se encontro un valor no reconocido.")
     return f"{t.hour:02d}:{t.minute:02d}"
 
 
@@ -181,7 +181,7 @@ def construir_mapa_columnas(ws) -> tuple[dict[int, str], dict[int, str]]:
 def parse_fabric(ruta_excel: str) -> list[ClaseFabric]:
     wb = openpyxl.load_workbook(ruta_excel, data_only=True, read_only=True)
     if HOJA not in wb.sheetnames:
-        raise ErrorImportacion(f"No existe la hoja {HOJA!r}; hojas disponibles: {wb.sheetnames}")
+        raise ErrorImportacion("No se encuentra la hoja de datos esperada en el libro.")
     ws = wb[HOJA]
     mapa_columnas, anotaciones_fila1 = construir_mapa_columnas(ws)
 
@@ -219,7 +219,7 @@ def parse_fabric(ruta_excel: str) -> list[ClaseFabric]:
         if isinstance(fila_a, str) and fila_a.strip():
             dia_normalizado = _NORMALIZA_DIA.get(fila_a.strip().upper())
             if dia_normalizado is None:
-                raise ErrorImportacion(f"Dia desconocido en fila {r}: {fila_a!r}")
+                raise ErrorImportacion(f"Dia desconocido en la fila {r}.")
             dia_actual = dia_normalizado
         if dia_actual is None:
             raise ErrorImportacion(f"Franja horaria en fila {r} sin dia conocido todavia.")
@@ -281,7 +281,11 @@ def parse_fabric(ruta_excel: str) -> list[ClaseFabric]:
     return clases
 
 
-def agrupar(clases: list[ClaseFabric]) -> list[dict]:
+def agrupar(
+    clases: list[ClaseFabric],
+    *,
+    identificador_responsable: str | None = None,
+) -> tuple[list[dict], list[str]]:
     """Une en una sola entrada las filas de ClaseFabric que comparten dia,
     hora de inicio/fin, tipo y aula -- igual que ya hace la pagina/el repo
     para desdobles. Avisa (no fusiona en silencio) si el mismo grupo aparece
@@ -325,11 +329,15 @@ def agrupar(clases: list[ClaseFabric]) -> list[dict]:
             )
     resultado = []
     for entrada in agrupadas.values():
-        resultado.append({
+        clase_publica = {
             "dia": entrada["dia"], "inicio": entrada["inicio"], "fin": entrada["fin"],
             "tipo": entrada["tipo"], "aula": entrada["aula"],
             "grupos": ", ".join(entrada["_grupos"]),
-        })
+        }
+        profesores = {p.casefold() for p in entrada["_profesores"] if p.strip()}
+        if identificador_responsable and profesores and identificador_responsable.strip().casefold() not in profesores:
+            clase_publica["propia"] = False
+        resultado.append(clase_publica)
     return resultado, avisos
 
 

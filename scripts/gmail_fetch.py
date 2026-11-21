@@ -1,9 +1,7 @@
 """
 Acceso a Gmail para GitHub Actions, usando el OAuth propio del usuario
 (proyecto "FABRIC-Horarios-2627", alcance de solo lectura
-https://www.googleapis.com/auth/gmail.readonly) -- NO el conector MCP de
-Claude, que solo existe dentro de una sesion de Claude y no esta disponible
-en un workflow de Actions.
+https://www.googleapis.com/auth/gmail.readonly).
 
 Credenciales: se leen de variables de entorno (GitHub Secrets en el
 workflow), nunca de un fichero ni de un argumento en texto plano, y nunca se
@@ -15,9 +13,8 @@ imprimen ni se incluyen en ningun mensaje de log o de commit:
 Separacion deliberada entre I/O y logica:
   - Las funciones que hablan con la API de Gmail (``obtener_servicio``,
     ``listar_mensajes_candidatos``, ``descargar_adjunto``) necesitan red y
-    credenciales reales; no se pueden probar en esta sesion sin acceso a tu
-    cuenta real de Gmail v3 (eso es distinto del conector Gmail de Claude
-    usado en esta conversacion, que es solo para esta sesion).
+    credenciales reales; no se prueban en la suite unitaria porque dependen de
+    una cuenta de Gmail v3 y de los secretos de GitHub Actions.
   - Las funciones que SI se prueban aqui con datos de verdad son las que
     construyen la query y las que interpretan el JSON que devuelve la API
     (``construir_query`` y ``extraer_candidato``): no dependen de la red,
@@ -29,6 +26,7 @@ Separacion deliberada entre I/O y logica:
 from __future__ import annotations
 
 import base64
+import binascii
 import os
 from datetime import datetime, timedelta, timezone
 
@@ -93,8 +91,8 @@ def _texto_de_parte(parte: dict) -> str:
         return ""
     try:
         return base64.urlsafe_b64decode(datos + "=" * (-len(datos) % 4)).decode("utf-8", "replace")
-    except Exception:
-        return ""
+    except (binascii.Error, ValueError) as exc:
+        raise ValueError("El cuerpo de correo tiene una codificacion no valida.") from exc
 
 
 def _recorrer_partes(payload: dict):
@@ -127,7 +125,7 @@ def extraer_candidato(mensaje: dict) -> CorreoCandidato:
         if fecha_envio.tzinfo is None:
             fecha_envio = fecha_envio.replace(tzinfo=timezone.utc)
     else:
-        raise ValueError(f"El mensaje {mensaje.get('id')} no tiene fecha (ni internalDate ni cabecera Date).")
+        raise ValueError("Un correo candidato no tiene fecha (ni internalDate ni cabecera Date).")
 
     cuerpo_texto = ""
     adjuntos: list[str] = []
@@ -164,12 +162,9 @@ def id_de_adjunto(mensaje: dict, nombre_archivo: str) -> str:
         if parte.get("filename") == nombre_archivo and parte.get("body", {}).get("attachmentId")
     ]
     if not coincidencias:
-        raise ValueError(f"No se encuentra el adjunto {nombre_archivo!r} en el mensaje {mensaje.get('id')}.")
+        raise ValueError("No se encuentra el adjunto esperado en el correo.")
     if len(coincidencias) > 1:
-        raise ValueError(
-            f"Hay {len(coincidencias)} adjuntos llamados {nombre_archivo!r} en el mensaje "
-            f"{mensaje.get('id')}; es ambiguo, se revisa a mano."
-        )
+        raise ValueError(f"Hay {len(coincidencias)} adjuntos con el mismo nombre; requiere revision manual.")
     return coincidencias[0]
 
 

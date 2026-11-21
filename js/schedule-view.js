@@ -25,6 +25,7 @@ export function createScheduleView(config, onWeekChange) {
     ui.tabs.hidden = false;
     const current = node("button", view === "actual" ? "active" : "", `Semana actual · ${weekCode(schedule.archivo)}`);
     current.type = "button";
+    if (schedule.provisional) current.append(node("span", "tag", "Provisional"));
     current.addEventListener("click", () => onWeekChange("actual"));
     const upcoming = node("button", view === "proxima" ? "active" : "", `Semana ${weekCode(next.archivo)}`);
     upcoming.type = "button";
@@ -45,7 +46,7 @@ export function createScheduleView(config, onWeekChange) {
     (Array.isArray(schedule.historial) ? schedule.historial : [])
       .filter((row) => row.semana !== currentCode)
       .forEach((row) => appendRow(row.semana, row));
-    appendRow(`${currentCode} (actual)`, countTypes(schedule.clases), "current");
+    appendRow(`${currentCode} (${schedule.provisional ? "actual provisional" : "actual"})`, countTypes(schedule.clases), "current");
     if (schedule.proximaSemana?.clases?.length) {
       const next = schedule.proximaSemana;
       appendRow(`${weekCode(next.archivo)} (${next.provisional ? "provisional" : "próxima"})`, countTypes(next.clases), "upcoming");
@@ -79,8 +80,12 @@ export function createScheduleView(config, onWeekChange) {
     ui.weekLabel.replaceChildren(document.createTextNode(`${days.length} días con clase${preview ? " — vista previa" : " esta semana"}`));
     if (!preview && days.length && !upcoming.item) ui.weekLabel.append(node("p", "no-upcoming", "Ya no quedan clases programadas esta semana."));
     if (!days.length) ui.weekLabel.textContent = "Sin clases programadas esta semana.";
-    ui.banner.hidden = !(preview && active.provisional);
-    ui.banner.textContent = preview && active.provisional ? "Sábana provisional: puede sufrir cambios antes de que llegue esta semana." : "";
+    ui.banner.hidden = !active.provisional;
+    ui.banner.textContent = active.provisional
+      ? preview
+        ? "Sábana provisional: puede sufrir cambios antes de que llegue esta semana."
+        : "Horario actual basado en una sábana provisional; puede sufrir cambios."
+      : "";
     ui.nav.replaceChildren();
     ui.days.replaceChildren();
 
@@ -110,7 +115,8 @@ export function createScheduleView(config, onWeekChange) {
   function renderPrintSheet(schedule) {
     const days = scheduleDays(schedule.clases, daysOrder);
     const table = node("table");
-    table.append(node("caption", "", `Resumen días y horas · ${schedule.title || config.title}`));
+    const etiquetaProvisional = schedule.provisional ? " · PROVISIONAL" : "";
+    table.append(node("caption", "", `Resumen días y horas · ${schedule.title || config.title}${etiquetaProvisional}`));
     const head = node("thead");
     const headerRow = node("tr");
     days.forEach(([day]) => headerRow.append(node("th", "", day)));
@@ -133,7 +139,7 @@ export function createScheduleView(config, onWeekChange) {
     }
     table.append(head, body);
     const totalMinutes = schedule.clases.reduce((sum, item) => sum + minutes(item.fin) - minutes(item.inicio), 0);
-    const meta = node("div", "meta", `Actualizado: ${schedule.actualizado} · ${schedule.clases.length} sesiones · ${Math.floor(totalMinutes / 60)}h ${totalMinutes % 60 ? `${totalMinutes % 60}min` : ""} lectivas`);
+    const meta = node("div", "meta", `Actualizado: ${schedule.actualizado} · ${schedule.clases.length} sesiones · ${Math.floor(totalMinutes / 60)}h ${totalMinutes % 60 ? `${totalMinutes % 60}min` : ""} lectivas${etiquetaProvisional}`);
     const summary = node("div", "summary");
     summary.append(table, meta);
     ui.print.replaceChildren(summary);

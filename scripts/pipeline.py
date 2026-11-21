@@ -21,13 +21,16 @@ otros cuatro modulos, deterministas y ya probados con pytest.
 from __future__ import annotations
 
 import json
+import os
 import sys
 import tempfile
-from datetime import date, datetime, timezone
+from datetime import date, datetime, time
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 from scripts.gmail_fetch import descargar_adjunto, id_de_adjunto, listar_candidatos, obtener_servicio
 from scripts.import_fabric import agrupar, parse_fabric
+from scripts.import_fabric_pdf import parse_fabric_pdf
 from scripts.merge_schedule import fusionar
 from scripts.sabana_mail import (
     EstadoProcesados,
@@ -38,9 +41,30 @@ from scripts.sabana_mail import (
     semana_lunes,
     ultima_por_semana_destino,
 )
+from scripts.week_rollover import cerrar_semana_si_corresponde
 
 RUTA_DATOS = Path("data/fstf-2627.json")
 RUTA_ESTADO = Path("data/.sabanas_procesadas.json")
+ZONA_HORARIA = ZoneInfo("Europe/Madrid")
+
+
+def dentro_ventana_de_ejecucion(ahora: datetime) -> bool:
+    """Limita el polling automático al horario lectivo configurado."""
+    hora = ahora.timetz().replace(tzinfo=None)
+    if ahora.weekday() == 0:
+        return time(12, 0) <= hora <= time(21, 0)
+    if ahora.weekday() in (1, 2, 3):
+        return time(8, 0) <= hora <= time(21, 0)
+    if ahora.weekday() == 4:
+        return time(8, 0) <= hora <= time(12, 0)
+    return False
+
+
+def _emitir_salida_github(nombre: str, valor: bool) -> None:
+    ruta = os.environ.get("GITHUB_OUTPUT")
+    if ruta:
+        with open(ruta, "a", encoding="utf-8") as salida:
+            salida.write(f"{nombre}={str(valor).lower()}\n")
 
 
 class FalloPipeline(Exception):
@@ -61,12 +85,24 @@ def guardar_estado(estado: EstadoProcesados) -> None:
 
 def ejecutar(hoy: date | None = None) -> bool:
     """Devuelve True si se escribio una nueva version de RUTA_DATOS."""
-    hoy = hoy or datetime.now(timezone.utc).date()
+    ahora = datetime.now(ZONA_HORARIA)
+    permitida = dentro_ventana_de_ejecucion(ahora) or os.environ.get("GITHUB_EVENT_NAME") == "workflow_dispatch"
+    _emitir_salida_github("dentro_ventana", permitida)
+    if not permitida:
+        _emitir_salida_github("sabana_aplicada", False)
+        print("Fuera de la ventana lectiva; se omite esta ejecucion.")
+        return False
+    hoy = hoy or ahora.date()
     today_monday = semana_lunes(hoy)
 
     if not RUTA_DATOS.exists():
         raise FalloPipeline(f"No existe {RUTA_DATOS}; este pipeline solo actualiza un horario que ya existe.")
     datos_actuales = json.loads(RUTA_DATOS.read_text(encoding="utf-8"))
+    datos_actuales, semana_promovida = cerrar_semana_si_corresponde(datos_actuales, ahora)
+    today_monday = max(
+        date.fromisoformat(datos_actuales.get("semanaInicio", today_monday.isoformat())),
+        today_monday,
+    )
 
     estado = cargar_estado()
     servicio = obtener_servicio()
@@ -81,10 +117,17 @@ def ejecutar(hoy: date | None = None) -> bool:
 
     pendientes = pendientes_de_procesar(clasificados, estado)
     if not pendientes:
-        return False  # nada nuevo que procesar
+        if semana_promovida:
+            RUTA_DATOS.write_text(
+                json.dumps(datos_actuales, indent=2, ensure_ascii=False) + "\n",
+                encoding="utf-8",
+            )
+        _emitir_salida_github("sabana_aplicada", False)
+        return semana_promovida
 
     ganadoras = ultima_por_semana_destino(pendientes)
-    cambios_aplicados = False
+    cambios_aplicados = semana_promovida
+    sabana_aplicada = False
     estado_modificado = False
     avisos_totales: list[str] = []
 
@@ -96,7 +139,7 @@ def ejecutar(hoy: date | None = None) -> bool:
             # (podria ser una sabana tardia de una semana ya cerrada); se
             # deja constancia y se sigue con el resto de ganadoras.
             avisos_totales.append(
-                f"Se ignora {sc.archivo} (mensaje {sc.message_id}): su semana destino "
+                "Se ignora un adjunto: su semana destino "
                 f"{semana_destino.isoformat()} no es ni la actual ({today_monday.isoformat()}) "
                 "ni la siguiente; revisar a mano si hace falta incorporarla."
             )
@@ -105,19 +148,30 @@ def ejecutar(hoy: date | None = None) -> bool:
         mensaje = mensajes_por_id[sc.message_id]
         attachment_id = id_de_adjunto(mensaje, sc.archivo)
         contenido = descargar_adjunto(servicio, sc.message_id, attachment_id)
-        with tempfile.NamedTemporaryFile(suffix=".xlsm", delete=False) as tmp:
+        with tempfile.NamedTemporaryFile(suffix=f".{sc.formato}", delete=False) as tmp:
             tmp.write(contenido)
             ruta_tmp = tmp.name
         try:
-            clases_crudas = parse_fabric(ruta_tmp)
+            identificador_responsable = os.environ.get("SCHEDULE_OWNER_ID")
+            clases_crudas = (
+                parse_fabric_pdf(ruta_tmp, identificador_responsable)
+                if sc.formato == "pdf"
+                else parse_fabric(ruta_tmp)
+            )
         finally:
             Path(ruta_tmp).unlink(missing_ok=True)
-        clases_agrupadas, avisos_import = agrupar(clases_crudas)
+        if sc.formato == "pdf":
+            clases_agrupadas, avisos_import = clases_crudas, []
+        else:
+            clases_agrupadas, avisos_import = agrupar(
+                clases_crudas,
+                identificador_responsable=os.environ.get("SCHEDULE_OWNER_ID"),
+            )
 
         resultado = fusionar(
             datos_actuales,
             archivo_nuevo=sc.archivo,
-            actualizado_nuevo=sc.fecha_envio.date().isoformat(),
+            actualizado_nuevo=sc.fecha_envio.astimezone(ZONA_HORARIA).date().isoformat(),
             clases_nuevas=clases_agrupadas,
             es_definitiva_nueva=sc.es_definitiva,
             semana_destino=semana_destino,
@@ -130,7 +184,7 @@ def ejecutar(hoy: date | None = None) -> bool:
                 # formadas...): se para todo el pipeline y se marca el job
                 # como fallido para que llegue la notificacion.
                 raise FalloPipeline(
-                    f"No se aplica {sc.archivo} (mensaje {sc.message_id}):\n- "
+                    "No se aplica un adjunto:\n- "
                     + "\n- ".join(resultado.problemas)
                 )
             # Bloqueo esperado y correcto (p.ej. una provisional mas vieja
@@ -139,7 +193,7 @@ def ejecutar(hoy: date | None = None) -> bool:
             # deja constancia en el log y se marca como procesada para no
             # volver a intentarlo cada dia con el mismo correo ya superado.
             avisos_totales.append(
-                f"Se ignora {sc.archivo} (mensaje {sc.message_id}, sin marcar error): "
+                "Se ignora un adjunto (sin marcar error): "
                 + "; ".join(resultado.problemas)
             )
             estado.marcar_procesado(sc.message_id)
@@ -149,6 +203,7 @@ def ejecutar(hoy: date | None = None) -> bool:
         avisos_totales.extend(resultado.problemas)  # avisos no bloqueantes que si se publicaron
         datos_actuales = resultado.datos
         cambios_aplicados = True
+        sabana_aplicada = True
         estado_modificado = True
         estado.marcar_procesado(sc.message_id)
 
@@ -163,6 +218,7 @@ def ejecutar(hoy: date | None = None) -> bool:
         )
         for a in avisos_totales:
             print(f"- {a}", file=sys.stderr)
+    _emitir_salida_github("sabana_aplicada", sabana_aplicada)
     return cambios_aplicados
 
 

@@ -31,6 +31,7 @@ export function validateSchedule(value, config) {
   for (const field of ["id", "title", "archivo", "actualizado"]) {
     if (typeof value[field] !== "string" || !value[field].trim()) return `Falta el campo de texto obligatorio “${field}”.`;
   }
+  if (value.provisional !== undefined && typeof value.provisional !== "boolean") return "“provisional” debe ser un valor booleano.";
   if (value.historial !== undefined && !Array.isArray(value.historial)) return "“historial” debe ser una lista.";
   for (const [index, row] of (value.historial || []).entries()) {
     if (!row || typeof row.semana !== "string" || [row.teoria, row.seminario, row.laboratorio].some((hours) => !Number.isFinite(hours) || hours < 0)) {
@@ -50,6 +51,7 @@ export function validateSchedule(value, config) {
     for (const field of ["tipo", "grupos"]) {
       if (typeof item[field] !== "string") return `Falta “${field}” en la clase ${index + 1}.`;
     }
+    if (item.propia !== undefined && typeof item.propia !== "boolean") return `“propia” no es válido en la clase ${index + 1}.`;
   }
   return null;
 }

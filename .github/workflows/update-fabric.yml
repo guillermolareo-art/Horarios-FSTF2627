@@ -16,8 +16,8 @@ name: Update FABRIC schedule from Gmail
 
 on:
   schedule:
-    - cron: "0 6 * * *"   # una vez al dia; ajustar si se necesita mas frecuencia
-  workflow_dispatch: {}     # permite lanzarlo a mano desde la pestaña Actions
+    - cron: "20 6-20 * * 1-5" # cada hora; pipeline.py filtra la ventana de Europe/Madrid
+  workflow_dispatch: {}
 
 permissions:
   contents: write
@@ -35,6 +35,8 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
+          cache: pip
+          cache-dependency-path: scripts/requirements.txt
 
       - uses: actions/setup-node@v7
         with:
@@ -49,19 +51,18 @@ jobs:
           GMAIL_CLIENT_ID: ${{ secrets.GMAIL_CLIENT_ID }}
           GMAIL_CLIENT_SECRET: ${{ secrets.GMAIL_CLIENT_SECRET }}
           GMAIL_REFRESH_TOKEN: ${{ secrets.GMAIL_REFRESH_TOKEN }}
+          SCHEDULE_OWNER_ID: ${{ secrets.SCHEDULE_OWNER_ID }}
         run: |
-          set -o pipefail
-          python -m scripts.pipeline 2>&1 | tee pipeline_output.log
+          python -m scripts.pipeline
           echo "cambios=$(git status --porcelain data/fstf-2627.json data/.sabanas_procesadas.json | wc -l)" >> "$GITHUB_OUTPUT"
-        # No se usa "::add-mask::" aqui porque los secretos nunca se
-        # imprimen: gmail_fetch.py los lee de variables de entorno y no los
-        # vuelve a mostrar en ningun print ni excepcion.
+          echo "horario_cambiado=$(git status --porcelain data/fstf-2627.json | wc -l)" >> "$GITHUB_OUTPUT"
 
       - name: Validar el esquema tras la fusion (ultima barrera antes de publicar)
         if: steps.pipeline.outputs.cambios != '0'
         run: npm run validate-schedules
 
       - name: Publicar directamente en main
+        id: publish
         if: steps.pipeline.outputs.cambios != '0'
         run: |
           git config user.name "github-actions[bot]"
@@ -70,10 +71,59 @@ jobs:
           git commit -m "Actualizar data/fstf-2627.json desde la sabana de Gmail"
           git push origin HEAD:main
 
-      - name: Subir el log del pipeline como artefacto
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: pipeline-log
-          path: pipeline_output.log
-          retention-days: 30
+      - name: Comprobar salidas pendientes en Drive
+        id: drive-plan
+        if: steps.pipeline.outputs.dentro_ventana == 'true' && vars.ENABLE_DRIVE_SYNC == 'true'
+        env:
+          DRIVE_SERVICE_ACCOUNT_JSON: ${{ secrets.DRIVE_SERVICE_ACCOUNT_JSON }}
+          DRIVE_FOLDER_ID: ${{ secrets.DRIVE_FOLDER_ID }}
+          CONTROL_OWNER_LABEL: ${{ secrets.CONTROL_OWNER_LABEL }}
+          SCHEDULE_OWNER_ID: ${{ secrets.SCHEDULE_OWNER_ID }}
+        run: python -m scripts.drive_task plan
+
+      - name: Instalar Chromium para generar el PDF semanal
+        if: steps.drive-plan.outputs.pdf_needed == 'true'
+        run: python -m playwright install --with-deps chromium
+
+      - name: Sincronizar PDF y Excel con Drive
+        if: steps.drive-plan.outputs.pdf_needed == 'true' || steps.drive-plan.outputs.excel_needed == 'true'
+        env:
+          DRIVE_SERVICE_ACCOUNT_JSON: ${{ secrets.DRIVE_SERVICE_ACCOUNT_JSON }}
+          DRIVE_FOLDER_ID: ${{ secrets.DRIVE_FOLDER_ID }}
+          CONTROL_OWNER_LABEL: ${{ secrets.CONTROL_OWNER_LABEL }}
+          SCHEDULE_OWNER_ID: ${{ secrets.SCHEDULE_OWNER_ID }}
+        run: |
+          if [ "${{ steps.drive-plan.outputs.pdf_needed }}" = "true" ]; then
+            python -m http.server 8000 > /tmp/fstf-http.log 2>&1 &
+            SERVER_PID=$!
+            trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
+            for attempt in {1..20}; do
+              if curl --fail --silent http://127.0.0.1:8000/artifact.html > /dev/null; then
+                break
+              fi
+              sleep 1
+            done
+            curl --fail --silent http://127.0.0.1:8000/artifact.html > /dev/null
+          fi
+          python -m scripts.drive_task sync
+
+      - name: Notificar nueva sábana en ntfy
+        if: ${{ !cancelled() && steps.publish.outcome == 'success' && steps.pipeline.outputs.sabana_aplicada == 'true' && steps.pipeline.outputs.horario_cambiado != '0' }}
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          NTFY_TOKEN: ${{ secrets.NTFY_TOKEN }}
+        run: |
+          if [[ ! "$NTFY_TOPIC" =~ ^[A-Za-z0-9_-]+$ ]]; then
+            echo "::error::NTFY_TOPIC falta o tiene un formato no permitido."
+            exit 1
+          fi
+          AUTH_HEADER=()
+          if [[ -n "$NTFY_TOKEN" ]]; then
+            AUTH_HEADER=(--header "Authorization: Bearer ${NTFY_TOKEN}")
+          fi
+          curl --fail-with-body --silent --show-error --max-time 20 \
+            --request POST \
+            "${AUTH_HEADER[@]}" \
+            --header "Title: Nueva sábana FABRIC publicada" \
+            --data "Se ha publicado una nueva sábana. Consulta el horario actualizado en GitHub Pages." \
+            "https://ntfy.sh/${NTFY_TOPIC}"

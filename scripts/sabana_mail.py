@@ -17,11 +17,13 @@ import re
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
 from typing import Iterable
+from zoneinfo import ZoneInfo
 
 REMITENTE_ESPERADO = "coordinacion.horarios.espacios@cud.uvigo.es"
+ZONA_HORARIA = ZoneInfo("Europe/Madrid")
 
-# Adjuntos reales de sabana: solo estas extensiones cuentan como "adjunto real".
-EXTENSIONES_SABANA = (".xlsx", ".xlsm")
+# Adjuntos de sábana admitidos por los importadores deterministas.
+EXTENSIONES_SABANA = (".xlsx", ".xlsm", ".pdf")
 
 # Frases que delatan un correo de aviso/error sin adjunto nuevo real (se reenviara
 # despues en otro mensaje, que si se procesara cuando llegue).
@@ -66,6 +68,7 @@ class SabanaClasificada:
     thread_id: str
     fecha_envio: datetime
     archivo: str
+    formato: str
     es_definitiva: bool
     semana_envio_lunes: date       # lunes (sabado->viernes) de la semana en que se envio
     semana_destino_lunes: date     # lunes de la semana (sabado->viernes) a la que apunta
@@ -103,15 +106,36 @@ def clasificar_definitiva_o_provisional(asunto: str, cuerpo_texto: str) -> bool:
     "provisional" de forma contradictoria (evidencia mixta) -- en ese caso no
     se adivina, se detiene el proceso para revision humana.
     """
-    texto = f"{asunto}\n{cuerpo_texto}"
+    texto = f"{asunto}\n{_texto_mensaje_actual(cuerpo_texto)}"
     es_def = any(p.search(texto) for p in PATRONES_DEFINITIVA)
     es_prov = any(p.search(texto) for p in PATRONES_PROVISIONAL)
     if es_def and es_prov:
         raise SabanaAmbigua(
-            f"El correo afirma a la vez 'definitiva' y 'provisional': {asunto!r}. "
+            "El correo afirma a la vez 'definitiva' y 'provisional'. "
             "No se resuelve por intuicion; requiere revision manual."
         )
     return es_def
+
+
+_INICIO_CITA = re.compile(
+    r"^\s*(?:"
+    r"-{2,}\s*(?:mensaje original|original message)\s*-{2,}"
+    r"|(?:on|el)\s+.+\s+(?:wrote:|escribi[oó]:)"
+    r"|de:\s|from:\s"
+    r")",
+    re.IGNORECASE,
+)
+
+
+def _texto_mensaje_actual(cuerpo_texto: str) -> str:
+    """Descarta respuestas citadas para no confundir versiones antiguas con
+    el estado del adjunto enviado en el mensaje actual."""
+    lineas_actuales = []
+    for linea in cuerpo_texto.splitlines():
+        if linea.lstrip().startswith(">") or _INICIO_CITA.search(linea):
+            break
+        lineas_actuales.append(linea)
+    return "\n".join(lineas_actuales)
 
 
 def candidatos_validos(correos: Iterable[CorreoCandidato]) -> list[CorreoCandidato]:
@@ -132,10 +156,10 @@ def clasificar(correo: CorreoCandidato) -> SabanaClasificada:
     adjuntos_sabana = [a for a in correo.adjuntos if a.lower().endswith(EXTENSIONES_SABANA)]
     if len(adjuntos_sabana) != 1:
         raise SabanaAmbigua(
-            f"El mensaje {correo.message_id} tiene {len(adjuntos_sabana)} adjuntos "
-            f"xlsx/xlsm (se esperaba exactamente 1): {adjuntos_sabana!r}."
+            f"El mensaje tiene {len(adjuntos_sabana)} adjuntos de sábana "
+            "(se esperaba exactamente 1); requiere revision manual."
         )
-    fecha = correo.fecha_envio.date()
+    fecha = correo.fecha_envio.astimezone(ZONA_HORARIA).date()
     semana_envio = semana_lunes(fecha)
     semana_destino = semana_envio + timedelta(days=7)
     es_definitiva = clasificar_definitiva_o_provisional(correo.asunto, correo.cuerpo_texto)
@@ -144,6 +168,7 @@ def clasificar(correo: CorreoCandidato) -> SabanaClasificada:
         thread_id=correo.thread_id,
         fecha_envio=correo.fecha_envio,
         archivo=adjuntos_sabana[0],
+        formato=adjuntos_sabana[0].rsplit(".", 1)[-1].lower(),
         es_definitiva=es_definitiva,
         semana_envio_lunes=semana_envio,
         semana_destino_lunes=semana_destino,

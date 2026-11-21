@@ -102,3 +102,15 @@ class TestSalidaPublicada:
         clases = [clase(grupos=["G4 (4 CGA-ST)"], columna=31, anotacion="BREST")]
         _, avisos = agrupar(clases)
         assert any("columna 31" in a for a in avisos)
+
+    def test_identificador_de_responsable_marca_clases_de_otra_persona_sin_publicarlo(self):
+        propia = clase(grupos=["G1"])
+        propia.profesores = ("OWNERID",)
+        ajena = clase(inicio="10:20", fin="11:10", grupos=["G2"])
+        ajena.profesores = ("OTHERID",)
+
+        salida, _ = agrupar([propia, ajena], identificador_responsable="ownerid")
+        assert "propia" not in salida[0]
+        assert salida[1]["propia"] is False
+        assert "OWNERID" not in repr(salida)
+        assert "OTHERID" not in repr(salida)

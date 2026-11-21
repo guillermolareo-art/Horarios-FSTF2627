@@ -15,10 +15,13 @@ La página publicada sigue disponible en la misma dirección: <https://guillermo
 - `data/fstf-2627.json`: única fuente de datos del horario actual y su próxima semana provisional.
 - `data/schedule.schema.json`: formato común para cualquier modelo o herramienta.
 - `.github/workflows/validate-schedules.yml`: comprueba los horarios en cada PR y después de cambios en `main`.
+- `.github/workflows/update-fabric.yml`: consulta sábanas con código determinista y mantiene la publicación sin llamar a un modelo.
 
 La página no contiene llamadas a Claude, ChatGPT ni a otro proveedor. Los archivos de datos se solicitan sin usar la copia local de caché; una página abierta comprueba cambios y se recarga al detectarlos. También tiene un botón para volver a cargar manualmente la versión publicada. Si se modifica la aplicación, se incrementa `appVersion` en `config/config.json` para que las páginas abiertas detecten la publicación.
 
-## Actualizar con cualquier modelo
+La automatización programada y la configuración adicional requerida para sincronizar PDF y Excel con Drive se describen en [`docs/automatizacion-horario.md`](docs/automatizacion-horario.md).
+
+## Actualización manual (opcional)
 
 Sigue el procedimiento de [`FLUJO-ACTUALIZACION.md`](FLUJO-ACTUALIZACION.md). El modelo que esté disponible transforma la sábana nueva al JSON común. La actualización se revisa y se integra en GitHub; GitHub Pages la publica. Ningún modelo guarda una versión separada de la web.
 

@@ -1,7 +1,7 @@
 """
 Fusiona una nueva sabana ya importada (import_fabric.agrupar) en el JSON
-vigente (mismo contrato que data/schedule.schema.json del repo y que el
-Artifact de Claude: schemaVersion, archivo, actualizado, semanaInicio,
+vigente (mismo contrato que data/schedule.schema.json del repo:
+schemaVersion, archivo, actualizado, semanaInicio,
 historial, clases, proximaSemana).
 
 Esto es la pieza que cierra los requisitos que ni el validador del repo ni
@@ -19,9 +19,12 @@ el importador cubren por si solos:
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from zoneinfo import ZoneInfo
 
 from scripts.sabana_mail import semana_lunes
 from datetime import date, datetime
+
+ZONA_HORARIA = ZoneInfo("Europe/Madrid")
 
 
 def _minutos(hhmm: str) -> int:
@@ -111,6 +114,8 @@ def _codigo_semana(archivo: str) -> str:
 def _contar_por_tipo(clases: list[dict]) -> dict:
     cuentas = {"teoria": 0, "seminario": 0, "laboratorio": 0}
     for c in clases:
+        if c.get("propia") is False:
+            continue
         tipo = c["tipo"].upper()
         clave = "seminario" if tipo.startswith("SEM") else "laboratorio" if tipo.startswith("LAB") else "teoria"
         cuentas[clave] += 1
@@ -151,7 +156,7 @@ def fusionar(
                 datos=None,
                 problemas=[
                     "La semana siguiente ya estaba marcada DEFINITIVA "
-                    f"({anterior_proxima.get('archivo')}) y la nueva sabana ({archivo_nuevo}) es "
+                    "y la nueva sabana es "
                     "PROVISIONAL: no se sustituye un horario definitivo por uno provisional."
                 ],
                 bloqueo_es_error=False,
@@ -176,8 +181,8 @@ def fusionar(
             return ResultadoFusion(
                 datos=None,
                 problemas=[
-                    f"La semana actual ya estaba en una version definitiva ({datos_actuales.get('archivo')}) "
-                    f"y la nueva sabana ({archivo_nuevo}) es provisional: no se sustituye."
+                    "La semana actual ya estaba en una version definitiva y la nueva sabana "
+                    "es provisional: no se sustituye."
                 ],
                 bloqueo_es_error=False,
             )
@@ -191,9 +196,10 @@ def fusionar(
 
     nuevo["archivo"] = archivo_nuevo
     nuevo["actualizado"] = actualizado_nuevo
+    nuevo["provisional"] = not es_definitiva_nueva
     nuevo["semanaInicio"] = semana_destino.isoformat()
     nuevo["clases"] = clases_nuevas
-    nuevo["comprobado"] = datetime.now().strftime("%Y-%m-%d %H:%M")
+    nuevo["comprobado"] = datetime.now(ZONA_HORARIA).strftime("%Y-%m-%d %H:%M")
     # Si la proximaSemana que ya teniamos resulta ser justo esta semana que
     # acaba de llegar, se limpia -- ya no es "la que viene", es la actual.
     if nuevo.get("proximaSemana", {}).get("semanaInicio") == semana_destino.isoformat():

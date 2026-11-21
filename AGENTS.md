@@ -14,10 +14,10 @@ La rama `main` es la que se publica. El repositorio es **público** a propósito
 
 Hay dos caminos para actualizar `data/fstf-2627.json`:
 
-1. **Automático.** `.github/workflows/update-fabric.yml` corre a diario, lee la
-   sábana del correo (solo lectura), la importa con `scripts/import_fabric.py`
-   y publica directamente en `main` sin revisión humana si pasa todas las
-   comprobaciones.
+1. **Automático.** `.github/workflows/update-fabric.yml` consulta Gmail en días
+   lectivos, importa sábanas Excel o PDF con código determinista y publica en
+   `main` si pasa todas las comprobaciones. No llama a ningún modelo. Las
+   salidas PDF y Excel de Drive requieren secretos adicionales.
 2. **Manual, con cualquier modelo.** Ver [FLUJO-ACTUALIZACION.md](FLUJO-ACTUALIZACION.md):
    el contrato es `data/schedule.schema.json` y el modelo devuelve el JSON entero.
 
@@ -34,7 +34,7 @@ La regla se aplica en tres sitios, y los tres deben seguir de acuerdo:
 - `scripts/import_fabric.py` → `agrupar()` seudonimiza antes de escribir
   (lista blanca: lo que no tiene forma de grupo se trata como persona).
 - `scripts/validate-schedules.mjs` → rechaza cualquier etiqueta que no sea
-  grupo colectivo o `Cadete N`. Corre en el job diario y en los PR. Su mensaje
+  grupo colectivo o `Cadete N`. Corre en el job programado y en los PR. Su mensaje
   no repite la etiqueta, porque los logs de Actions son públicos.
 - El prompt de `FLUJO-ACTUALIZACION.md`, para el camino manual.
 
@@ -46,10 +46,12 @@ guarda en el repositorio: se mira en la sábana, que vive en el correo.
 ## Secretos
 
 `GMAIL_CLIENT_ID`, `GMAIL_CLIENT_SECRET` y `GMAIL_REFRESH_TOKEN` están en los
-GitHub Secrets del repositorio. GitHub no permite leerlos y **no consta que haya
-copia en otro sitio**. Por tanto: **no borrar ni recrear este repositorio**, ni
-proponerlo como solución a nada. Se perderían los secretos, la configuración de
-Pages y la URL publicada.
+GitHub Secrets del repositorio. La automatización de Drive requiere además una
+cuenta de servicio limitada a la carpeta compartida y los secretos indicados en
+`docs/automatizacion-horario.md`. GitHub no permite leer los secretos y **no
+consta que haya copia en otro sitio**. Por tanto: **no borrar ni recrear este
+repositorio**, ni proponerlo como solución a nada. Se perderían los secretos,
+la configuración de Pages y la URL publicada.
 
 ## Pendiente (27/10/2026)
 

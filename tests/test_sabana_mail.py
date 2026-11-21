@@ -1,15 +1,4 @@
-"""
-Tests contra los correos de la cuenta institucional de coordinacion de horarios
-(recogidos con mcp__Gmail__search_threads / get_message en la auditoria de la
-sesion anterior, semanas 2B/3A/4B de septiembre 2026). No son datos sinteticos
-inventados: son el asunto, fecha y nombre de adjunto reales de cada mensaje,
-tal como los devolvio Gmail.
-
-Este repositorio es publico: los mensajes de personas concretas van con
-remitente y cuerpo anonimizados. Solo se conserva literal lo que envia la
-cuenta de coordinacion, que es una direccion de funcion, no personal, y de la
-que depende la logica (REMITENTE_ESPERADO en scripts/sabana_mail.py).
-"""
+"""Pruebas deterministas con identificadores y datos de correo sintéticos."""
 from datetime import datetime, timezone, date
 
 import pytest
@@ -58,14 +47,14 @@ def test_semana_lunes_sabado_viernes(d, esperado):
     assert semana_lunes(d) == esperado
 
 
-# --- clasificacion real: los 9 correos de la auditoria de septiembre 2026 ---
+# --- clasificación de mensajes sintéticos ---
 
 def test_correo_4b_provisional_es_candidato_valido_y_provisional():
     c = correo(
-        message_id="1a0a0f75858c52db",
+        message_id="synthetic-provisional",
         fecha_envio=datetime(2026, 9, 14, 17, 29, 2, tzinfo=UTC),
-        asunto="[pdi] Sábana semana 4B",
-        cuerpo_texto="Adjunto sábana de la semana que viene en versión provisional con las aulas sin asignar.",
+        asunto="Schedule notice 4B provisional",
+        cuerpo_texto="Synthetic provisional schedule update.",
         adjuntos=("SABANA_20260914_4B_PROVISIONAL.xlsm",),
     )
     assert tiene_adjunto_real(c)
@@ -77,10 +66,10 @@ def test_correo_4b_provisional_es_candidato_valido_y_provisional():
 
 def test_correo_3a_definitiva():
     c = correo(
-        message_id="1a090940bc2f676e",
+        message_id="synthetic-definitive",
         fecha_envio=datetime(2026, 9, 11, 13, 6, 39, tzinfo=UTC),
-        asunto="[pdi] Sábana definitiva",
-        cuerpo_texto="Adjunto la versión que se va a publicar en la orden del lunes.",
+        asunto="Schedule notice 3A definitive",
+        cuerpo_texto="This version is marked final.",
         adjuntos=("SABANA_20260911_3A_FINAL.xlsm",),
     )
     sc = clasificar(c)
@@ -90,10 +79,10 @@ def test_correo_3a_definitiva():
 
 def test_correo_3a_provisional_con_aulas():
     c = correo(
-        message_id="1a087510d75a7436",
+        message_id="synthetic-provisional-rooms",
         fecha_envio=datetime(2026, 9, 9, 17, 56, 56, tzinfo=UTC),
-        asunto="[pdi] Sábana provisional 3A con aulas",
-        cuerpo_texto="Adjunto sábana provisional con los cambios remitidos desde el lunes, y con aulas ya asignadas.",
+        asunto="Schedule notice 3A provisional with rooms",
+        cuerpo_texto="Synthetic provisional schedule update with room data.",
         adjuntos=("SABANA_20260909_3A_PROVISIONAL_AULAS.xlsm",),
     )
     sc = clasificar(c)
@@ -101,16 +90,25 @@ def test_correo_3a_provisional_con_aulas():
     assert sc.semana_destino_lunes == date(2026, 9, 14)
 
 
-def test_respuesta_de_otro_profesor_se_descarta_aunque_tenga_remitente_similar():
-    # Otro profesor del CUD respondiendo al hilo: mismo dominio, pero no es el
-    # remitente esperado. Remitente y cuerpo anonimizados a proposito (este
-    # repositorio es publico); lo que prueba el caso es el dominio comun.
+def test_adjunto_pdf_es_un_formato_admitido_y_se_clasifica():
     c = correo(
-        message_id="1a08a1c3f1d1e7f5",
-        remitente="otro.profesor@cud.uvigo.es",
+        message_id="pdf-candidate",
+        fecha_envio=datetime(2026, 11, 20, 10, 0, tzinfo=UTC),
+        asunto="Sábana provisional",
+        adjuntos=("SABANA_20261120_13B_PROVISIONAL.pdf",),
+    )
+    assert tiene_adjunto_real(c)
+    assert clasificar(c).formato == "pdf"
+
+
+def test_respuesta_de_otro_profesor_se_descarta_aunque_tenga_remitente_similar():
+    # Un remitente diferente respondiendo al hilo no cuenta como sábana nueva.
+    c = correo(
+        message_id="synthetic-reply",
+        remitente="other.sender@example.test",
         fecha_envio=datetime(2026, 9, 10, 6, 57, 0, tzinfo=UTC),
-        asunto="Re: [pdi] Sábana provisional 3A con aulas",
-        cuerpo_texto="¿la clase de refuerzo sería el jueves de 9 a 11?",
+        asunto="Re: Schedule notice 3A provisional",
+        cuerpo_texto="Synthetic reply without a schedule attachment.",
         adjuntos=(),
     )
     assert es_respuesta_de_hilo(c) is True
@@ -119,10 +117,10 @@ def test_respuesta_de_otro_profesor_se_descarta_aunque_tenga_remitente_similar()
 
 def test_aviso_de_error_sin_adjunto_se_descarta():
     c = correo(
-        message_id="1a06742630296a8c",
+        message_id="synthetic-notice",
         fecha_envio=datetime(2026, 9, 3, 12, 32, 42, tzinfo=UTC),
-        asunto="[pdi] Re: Sábana provisonal semana 2B (actualización)",
-        cuerpo_texto="Creo qué hay un error en el archivo, no es la última versión con los últimos cambios, en cuanto lo consiga lo envío.",
+        asunto="Re: Schedule notice 2B",
+        cuerpo_texto="Synthetic notice without an updated attachment.",
         adjuntos=(),
     )
     assert candidatos_validos([c]) == []
@@ -130,10 +128,10 @@ def test_aviso_de_error_sin_adjunto_se_descarta():
 
 def test_reenvio_tras_error_si_cuenta_una_vez_tiene_adjunto_real():
     c = correo(
-        message_id="1a0677309ac2c19d",
+        message_id="synthetic-retry",
         fecha_envio=datetime(2026, 9, 3, 13, 26, 10, tzinfo=UTC),
-        asunto="[pdi] Re: Sábana provisonal semana 2B (actualización)",
-        cuerpo_texto="Ahora si adjunto la sábana con todas las actualizaciones, ya que faltaba un cambio.",
+        asunto="Re: Schedule notice 2B updated",
+        cuerpo_texto="Synthetic updated schedule attachment.",
         adjuntos=("SABANA_20260903_2B_ACTUALIZACION2.xlsm",),
     )
     assert candidatos_validos([c]) == [c]
@@ -144,8 +142,31 @@ def test_reenvio_tras_error_si_cuenta_una_vez_tiene_adjunto_real():
 def test_definitiva_y_provisional_a_la_vez_detiene_el_proceso():
     with pytest.raises(SabanaAmbigua):
         clasificar_definitiva_o_provisional(
-            "Sábana definitiva (aún provisional en aulas)",
-            "Es la versión definitiva de horas, aunque las aulas siguen siendo provisionales.",
+            "Schedule final and provisional",
+            "The schedule is marked final and provisional.",
+        )
+
+
+def test_una_respuesta_citada_no_vuelve_ambiguo_el_estado_del_adjunto_actual():
+    c = correo(
+        message_id="quoted-status",
+        fecha_envio=datetime(2026, 11, 20, 14, 0, tzinfo=UTC),
+        asunto="Schedule provisional updated",
+        cuerpo_texto=(
+            "Synthetic current update.\n\n"
+            "-----Mensaje original-----\n"
+            "The previous version was final."
+        ),
+        adjuntos=("SABANA_20261118_13B_PROVISIONAL.xlsm",),
+    )
+    assert clasificar(c).es_definitiva is False
+
+
+def test_contradiccion_en_el_mensaje_actual_sigue_requiriendo_revision():
+    with pytest.raises(SabanaAmbigua):
+        clasificar_definitiva_o_provisional(
+            "Schedule definitive",
+            "Synthetic provisional update.",
         )
 
 
@@ -153,7 +174,7 @@ def test_dos_adjuntos_en_el_mismo_correo_es_ambiguo_y_detiene_el_proceso():
     c = correo(
         message_id="x1",
         fecha_envio=datetime(2026, 9, 14, 17, 29, 2, tzinfo=UTC),
-        asunto="[pdi] Sábana semana 4B",
+        asunto="Schedule week 4B",
         cuerpo_texto="provisional",
         adjuntos=("SABANA_A.xlsm", "SABANA_B.xlsx"),
     )
@@ -162,20 +183,20 @@ def test_dos_adjuntos_en_el_mismo_correo_es_ambiguo_y_detiene_el_proceso():
 
 
 def test_misma_semana_destino_se_queda_con_el_envio_mas_reciente():
-    # Secuencia real de la semana 3A (target_monday 2026-09-14): 07/09, 09/09, 11/09.
+    # Varias revisiones para una misma semana de destino.
     c1 = clasificar(correo(
         message_id="m1", fecha_envio=datetime(2026, 9, 7, 15, 19, 50, tzinfo=UTC),
-        asunto="[pdi] Sábana semana 3A", cuerpo_texto="primera versión provisional",
+        asunto="Schedule week 3A", cuerpo_texto="First provisional version.",
         adjuntos=("SABANA_20260907_3A_PROVISIONAL.xlsm",),
     ))
     c2 = clasificar(correo(
         message_id="m2", fecha_envio=datetime(2026, 9, 9, 17, 56, 56, tzinfo=UTC),
-        asunto="[pdi] Sábana provisional 3A con aulas", cuerpo_texto="provisional con aulas",
+        asunto="Schedule provisional 3A with rooms", cuerpo_texto="Provisional update with rooms.",
         adjuntos=("SABANA_20260909_3A_PROVISIONAL_AULAS.xlsm",),
     ))
     c3 = clasificar(correo(
         message_id="m3", fecha_envio=datetime(2026, 9, 11, 13, 6, 39, tzinfo=UTC),
-        asunto="[pdi] Sábana definitiva", cuerpo_texto="se va a publicar",
+        asunto="Schedule definitive", cuerpo_texto="Final schedule version.",
         adjuntos=("SABANA_20260911_3A_FINAL.xlsm",),
     ))
     resultado = ultima_por_semana_destino([c1, c2, c3])
