@@ -7,6 +7,7 @@ import pytest
 
 import scripts.pipeline as pipeline
 from scripts.pipeline import dentro_ventana_de_ejecucion
+from scripts.merge_schedule import fusionar
 
 MADRID = ZoneInfo("Europe/Madrid")
 
@@ -104,3 +105,35 @@ def test_sabana_aceptada_emite_salida_para_notificacion(tmp_path, monkeypatch):
 
     assert pipeline.ejecutar(hoy=date(2026, 11, 20)) is True
     assert "sabana_aplicada=true" in salida.read_text(encoding="utf-8")
+
+
+def test_fusiona_semana_actual_si_proxima_semana_es_null():
+    datos = {
+        "historial": [],
+        "archivo": "SABANA_20261116_12A_PROVISIONAL.xlsm",
+        "actualizado": "2026-11-16",
+        "provisional": True,
+        "semanaInicio": "2026-11-16",
+        "clases": [],
+        "proximaSemana": None,
+    }
+    clases = [{
+        "dia": "Viernes",
+        "inicio": "08:15",
+        "fin": "09:05",
+        "tipo": "TEORIA",
+        "aula": 40,
+        "grupos": "G1",
+    }]
+    resultado = fusionar(
+        datos,
+        archivo_nuevo="SABANA_20261120_13B_FINAL.xlsm",
+        actualizado_nuevo="2026-11-20",
+        clases_nuevas=clases,
+        es_definitiva_nueva=True,
+        semana_destino=date(2026, 11, 20),
+        today_monday=date(2026, 11, 16),
+        es_para_proxima_semana=False,
+    )
+    assert resultado.datos is not None
+    assert resultado.datos["proximaSemana"] is None

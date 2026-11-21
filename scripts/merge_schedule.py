@@ -202,6 +202,7 @@ def fusionar(
     nuevo["comprobado"] = datetime.now(ZONA_HORARIA).strftime("%Y-%m-%d %H:%M")
     # Si la proximaSemana que ya teniamos resulta ser justo esta semana que
     # acaba de llegar, se limpia -- ya no es "la que viene", es la actual.
-    if nuevo.get("proximaSemana", {}).get("semanaInicio") == semana_destino.isoformat():
+    proxima = nuevo.get("proximaSemana")
+    if proxima and proxima.get("semanaInicio") == semana_destino.isoformat():
         nuevo["proximaSemana"] = None
     return ResultadoFusion(datos=nuevo, problemas=avisos_perdidas)
