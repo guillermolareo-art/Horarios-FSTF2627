@@ -205,6 +205,109 @@
       "grupos": "G5 (4 CGA-ST), G6 (4 CGA-ST), IM1 (4 CIM-ST), IM2 (4 CIM-ST), Cadete 2"
     }
   ],
-  "proximaSemana": null,
+  "proximaSemana": {
+    "archivo": "SABANA_20261124_14A_PROVISIONAL.xlsm",
+    "actualizado": "2026-11-24",
+    "provisional": false,
+    "semanaInicio": "2026-11-30",
+    "clases": [
+      {
+        "dia": "Lunes",
+        "inicio": "12:10",
+        "fin": "13:00",
+        "tipo": "SEMINARIO",
+        "aula": 40,
+        "grupos": "G2 (4 CGA-ST)"
+      },
+      {
+        "dia": "Lunes",
+        "inicio": "15:30",
+        "fin": "16:20",
+        "tipo": "SEMINARIO",
+        "aula": 40,
+        "grupos": "G1 (4 CGA-ST), Cadete 1"
+      },
+      {
+        "dia": "Martes",
+        "inicio": "08:15",
+        "fin": "09:05",
+        "tipo": "TEORIA",
+        "aula": 45,
+        "grupos": "Cadete 3"
+      },
+      {
+        "dia": "Martes",
+        "inicio": "09:10",
+        "fin": "10:00",
+        "tipo": "SEMINARIO",
+        "aula": 40,
+        "grupos": "IM1 (4 CIM-ST), IM2 (4 CIM-ST), Cadete 2"
+      },
+      {
+        "dia": "Martes",
+        "inicio": "09:10",
+        "fin": "10:00",
+        "tipo": "TEORIA",
+        "aula": 45,
+        "grupos": "Cadete 3"
+      },
+      {
+        "dia": "Martes",
+        "inicio": "10:20",
+        "fin": "11:10",
+        "tipo": "TEORIA",
+        "aula": 40,
+        "grupos": "G1 (4 CGA-ST), G2 (4 CGA-ST), G3 (4 CGA-ST), G4 (4 CGA-ST)"
+      },
+      {
+        "dia": "Martes",
+        "inicio": "11:15",
+        "fin": "12:05",
+        "tipo": "TEORIA",
+        "aula": 45,
+        "grupos": "G5 (4 CGA-ST), G6 (4 CGA-ST), IM1 (4 CIM-ST), IM2 (4 CIM-ST), Cadete 2, Cadete 1"
+      },
+      {
+        "dia": "Martes",
+        "inicio": "12:10",
+        "fin": "13:00",
+        "tipo": "SEMINARIO",
+        "aula": 40,
+        "grupos": "G4 (4 CGA-ST)"
+      },
+      {
+        "dia": "Miércoles",
+        "inicio": "12:10",
+        "fin": "13:00",
+        "tipo": "TEORIA",
+        "aula": 45,
+        "grupos": "Cadete 3"
+      },
+      {
+        "dia": "Jueves",
+        "inicio": "09:10",
+        "fin": "10:00",
+        "tipo": "SEMINARIO",
+        "aula": 40,
+        "grupos": "G3 (4 CGA-ST)"
+      },
+      {
+        "dia": "Jueves",
+        "inicio": "10:20",
+        "fin": "11:10",
+        "tipo": "SEMINARIO",
+        "aula": 45,
+        "grupos": "G6 (4 CGA-ST)"
+      },
+      {
+        "dia": "Jueves",
+        "inicio": "12:10",
+        "fin": "13:00",
+        "tipo": "SEMINARIO",
+        "aula": 45,
+        "grupos": "G5 (4 CGA-ST), Cadete 3"
+      }
+    ]
+  },
   "provisional": false
 }
