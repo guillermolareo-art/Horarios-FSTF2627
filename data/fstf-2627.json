@@ -3,10 +3,10 @@
   "id": "fstf-2627",
   "title": "Horario FSTF 26-27",
   "subtitle": "Fundamentos de Sistemas y Tecnologías de Fabricación",
-  "archivo": "SABANA_20261119_13B_PROVISIONAL.xlsm",
-  "actualizado": "2026-11-19",
-  "comprobado": "2026-11-23 19:29",
-  "semanaInicio": "2026-11-23",
+  "archivo": "SABANA_20261124_14A_PROVISIONAL.xlsm",
+  "actualizado": "2026-11-24",
+  "comprobado": "2026-11-25 18:25",
+  "semanaInicio": "2026-11-30",
   "historial": [
     {
       "semana": "1A",
@@ -73,64 +73,62 @@
       "teoria": 6,
       "seminario": 7,
       "laboratorio": 0
+    },
+    {
+      "semana": "13B",
+      "teoria": 6,
+      "seminario": 0,
+      "laboratorio": 10
     }
   ],
   "clases": [
     {
       "dia": "Lunes",
-      "inicio": "14:35",
-      "fin": "15:25",
-      "tipo": "LABORATORIO",
-      "aula": 50,
-      "grupos": "G3 (4 CGA-ST), G4 (4 CGA-ST), Cadete 1"
+      "inicio": "12:10",
+      "fin": "13:00",
+      "tipo": "SEMINARIO",
+      "aula": 40,
+      "grupos": "G2 (4 CGA-ST)"
     },
     {
       "dia": "Lunes",
       "inicio": "15:30",
       "fin": "16:20",
-      "tipo": "LABORATORIO",
-      "aula": 50,
-      "grupos": "G3 (4 CGA-ST), G4 (4 CGA-ST), Cadete 1"
-    },
-    {
-      "dia": "Lunes",
-      "inicio": "16:25",
-      "fin": "17:15",
-      "tipo": "LABORATORIO",
-      "aula": 50,
-      "grupos": "G1 (4 CGA-ST), G2 (4 CGA-ST)"
-    },
-    {
-      "dia": "Lunes",
-      "inicio": "17:20",
-      "fin": "18:10",
-      "tipo": "LABORATORIO",
-      "aula": 50,
-      "grupos": "G1 (4 CGA-ST), G2 (4 CGA-ST)"
+      "tipo": "SEMINARIO",
+      "aula": 40,
+      "grupos": "G1 (4 CGA-ST), Cadete 1"
     },
     {
       "dia": "Martes",
       "inicio": "08:15",
       "fin": "09:05",
       "tipo": "TEORIA",
+      "aula": 45,
+      "grupos": "Cadete 3"
+    },
+    {
+      "dia": "Martes",
+      "inicio": "09:10",
+      "fin": "10:00",
+      "tipo": "SEMINARIO",
       "aula": 40,
-      "grupos": "G1 (4 CGA-ST), G2 (4 CGA-ST), G3 (4 CGA-ST), G4 (4 CGA-ST), Cadete 1"
+      "grupos": "IM1 (4 CIM-ST), IM2 (4 CIM-ST), Cadete 2"
     },
     {
       "dia": "Martes",
       "inicio": "09:10",
       "fin": "10:00",
       "tipo": "TEORIA",
-      "aula": 40,
-      "grupos": "G1 (4 CGA-ST), G2 (4 CGA-ST), G3 (4 CGA-ST), G4 (4 CGA-ST), Cadete 1"
+      "aula": 45,
+      "grupos": "Cadete 3"
     },
     {
       "dia": "Martes",
       "inicio": "10:20",
       "fin": "11:10",
       "tipo": "TEORIA",
-      "aula": 45,
-      "grupos": "G5 (4 CGA-ST), G6 (4 CGA-ST), IM1 (4 CIM-ST), IM2 (4 CIM-ST), Cadete 2, Cadete 3"
+      "aula": 40,
+      "grupos": "G1 (4 CGA-ST), G2 (4 CGA-ST), G3 (4 CGA-ST), G4 (4 CGA-ST)"
     },
     {
       "dia": "Martes",
@@ -138,176 +136,49 @@
       "fin": "12:05",
       "tipo": "TEORIA",
       "aula": 45,
-      "grupos": "G5 (4 CGA-ST), G6 (4 CGA-ST), IM1 (4 CIM-ST), IM2 (4 CIM-ST), Cadete 2, Cadete 3"
+      "grupos": "G5 (4 CGA-ST), G6 (4 CGA-ST), IM1 (4 CIM-ST), IM2 (4 CIM-ST), Cadete 2, Cadete 1"
     },
     {
       "dia": "Martes",
-      "inicio": "14:35",
-      "fin": "15:25",
-      "tipo": "LABORATORIO",
-      "aula": 50,
-      "grupos": "IM1 (4 CIM-ST), IM2 (4 CIM-ST)"
-    },
-    {
-      "dia": "Martes",
-      "inicio": "14:35",
-      "fin": "15:25",
-      "tipo": "LABORATORIO",
-      "aula": 45,
-      "grupos": "Cadete 2"
-    },
-    {
-      "dia": "Martes",
-      "inicio": "15:30",
-      "fin": "16:20",
-      "tipo": "LABORATORIO",
-      "aula": 50,
-      "grupos": "IM1 (4 CIM-ST), IM2 (4 CIM-ST)"
-    },
-    {
-      "dia": "Martes",
-      "inicio": "15:30",
-      "fin": "16:20",
-      "tipo": "LABORATORIO",
-      "aula": 45,
-      "grupos": "Cadete 2"
-    },
-    {
-      "dia": "Martes",
-      "inicio": "16:25",
-      "fin": "17:15",
-      "tipo": "LABORATORIO",
-      "aula": 50,
-      "grupos": "G5 (4 CGA-ST), G6 (4 CGA-ST), Cadete 3"
-    },
-    {
-      "dia": "Martes",
-      "inicio": "17:20",
-      "fin": "18:10",
-      "tipo": "LABORATORIO",
-      "aula": 50,
-      "grupos": "G5 (4 CGA-ST), G6 (4 CGA-ST), Cadete 3"
+      "inicio": "12:10",
+      "fin": "13:00",
+      "tipo": "SEMINARIO",
+      "aula": 40,
+      "grupos": "G4 (4 CGA-ST)"
     },
     {
       "dia": "Miércoles",
+      "inicio": "12:10",
+      "fin": "13:00",
+      "tipo": "TEORIA",
+      "aula": 45,
+      "grupos": "Cadete 3"
+    },
+    {
+      "dia": "Jueves",
+      "inicio": "09:10",
+      "fin": "10:00",
+      "tipo": "SEMINARIO",
+      "aula": 40,
+      "grupos": "G3 (4 CGA-ST)"
+    },
+    {
+      "dia": "Jueves",
       "inicio": "10:20",
       "fin": "11:10",
-      "tipo": "TEORIA",
-      "aula": 40,
-      "grupos": "G1 (4 CGA-ST), G2 (4 CGA-ST), G3 (4 CGA-ST), G4 (4 CGA-ST), Cadete 1"
+      "tipo": "SEMINARIO",
+      "aula": 45,
+      "grupos": "G6 (4 CGA-ST)"
     },
     {
-      "dia": "Miércoles",
-      "inicio": "11:15",
-      "fin": "12:05",
-      "tipo": "TEORIA",
+      "dia": "Jueves",
+      "inicio": "12:10",
+      "fin": "13:00",
+      "tipo": "SEMINARIO",
       "aula": 45,
-      "grupos": "G5 (4 CGA-ST), G6 (4 CGA-ST), IM1 (4 CIM-ST), IM2 (4 CIM-ST), Cadete 2"
+      "grupos": "G5 (4 CGA-ST), Cadete 3"
     }
   ],
-  "proximaSemana": {
-    "archivo": "SABANA_20261124_14A_PROVISIONAL.xlsm",
-    "actualizado": "2026-11-24",
-    "provisional": false,
-    "semanaInicio": "2026-11-30",
-    "clases": [
-      {
-        "dia": "Lunes",
-        "inicio": "12:10",
-        "fin": "13:00",
-        "tipo": "SEMINARIO",
-        "aula": 40,
-        "grupos": "G2 (4 CGA-ST)"
-      },
-      {
-        "dia": "Lunes",
-        "inicio": "15:30",
-        "fin": "16:20",
-        "tipo": "SEMINARIO",
-        "aula": 40,
-        "grupos": "G1 (4 CGA-ST), Cadete 1"
-      },
-      {
-        "dia": "Martes",
-        "inicio": "08:15",
-        "fin": "09:05",
-        "tipo": "TEORIA",
-        "aula": 45,
-        "grupos": "Cadete 3"
-      },
-      {
-        "dia": "Martes",
-        "inicio": "09:10",
-        "fin": "10:00",
-        "tipo": "SEMINARIO",
-        "aula": 40,
-        "grupos": "IM1 (4 CIM-ST), IM2 (4 CIM-ST), Cadete 2"
-      },
-      {
-        "dia": "Martes",
-        "inicio": "09:10",
-        "fin": "10:00",
-        "tipo": "TEORIA",
-        "aula": 45,
-        "grupos": "Cadete 3"
-      },
-      {
-        "dia": "Martes",
-        "inicio": "10:20",
-        "fin": "11:10",
-        "tipo": "TEORIA",
-        "aula": 40,
-        "grupos": "G1 (4 CGA-ST), G2 (4 CGA-ST), G3 (4 CGA-ST), G4 (4 CGA-ST)"
-      },
-      {
-        "dia": "Martes",
-        "inicio": "11:15",
-        "fin": "12:05",
-        "tipo": "TEORIA",
-        "aula": 45,
-        "grupos": "G5 (4 CGA-ST), G6 (4 CGA-ST), IM1 (4 CIM-ST), IM2 (4 CIM-ST), Cadete 2, Cadete 1"
-      },
-      {
-        "dia": "Martes",
-        "inicio": "12:10",
-        "fin": "13:00",
-        "tipo": "SEMINARIO",
-        "aula": 40,
-        "grupos": "G4 (4 CGA-ST)"
-      },
-      {
-        "dia": "Miércoles",
-        "inicio": "12:10",
-        "fin": "13:00",
-        "tipo": "TEORIA",
-        "aula": 45,
-        "grupos": "Cadete 3"
-      },
-      {
-        "dia": "Jueves",
-        "inicio": "09:10",
-        "fin": "10:00",
-        "tipo": "SEMINARIO",
-        "aula": 40,
-        "grupos": "G3 (4 CGA-ST)"
-      },
-      {
-        "dia": "Jueves",
-        "inicio": "10:20",
-        "fin": "11:10",
-        "tipo": "SEMINARIO",
-        "aula": 45,
-        "grupos": "G6 (4 CGA-ST)"
-      },
-      {
-        "dia": "Jueves",
-        "inicio": "12:10",
-        "fin": "13:00",
-        "tipo": "SEMINARIO",
-        "aula": 45,
-        "grupos": "G5 (4 CGA-ST), Cadete 3"
-      }
-    ]
-  },
+  "proximaSemana": null,
   "provisional": false
 }
