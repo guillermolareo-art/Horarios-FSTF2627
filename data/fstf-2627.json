@@ -3,9 +3,9 @@
   "id": "fstf-2627",
   "title": "Horario FSTF 26-27",
   "subtitle": "Fundamentos de Sistemas y Tecnologías de Fabricación",
-  "archivo": "SABANA_20261124_14A_PROVISIONAL.xlsm",
-  "actualizado": "2026-11-24",
-  "comprobado": "2026-11-25 18:25",
+  "archivo": "SABANA_20261125_14A_PROVISIONAL.xlsm",
+  "actualizado": "2026-11-25",
+  "comprobado": "2026-11-26 18:06",
   "semanaInicio": "2026-11-30",
   "historial": [
     {
@@ -100,27 +100,11 @@
     },
     {
       "dia": "Martes",
-      "inicio": "08:15",
-      "fin": "09:05",
-      "tipo": "TEORIA",
-      "aula": 45,
-      "grupos": "Cadete 3"
-    },
-    {
-      "dia": "Martes",
       "inicio": "09:10",
       "fin": "10:00",
       "tipo": "SEMINARIO",
       "aula": 40,
-      "grupos": "IM1 (4 CIM-ST), IM2 (4 CIM-ST), Cadete 2"
-    },
-    {
-      "dia": "Martes",
-      "inicio": "09:10",
-      "fin": "10:00",
-      "tipo": "TEORIA",
-      "aula": 45,
-      "grupos": "Cadete 3"
+      "grupos": "IM1 (4 CIM-ST), IM2 (4 CIM-ST), Cadete 2, Cadete 3"
     },
     {
       "dia": "Martes",
@@ -147,14 +131,6 @@
       "grupos": "G4 (4 CGA-ST)"
     },
     {
-      "dia": "Miércoles",
-      "inicio": "12:10",
-      "fin": "13:00",
-      "tipo": "TEORIA",
-      "aula": 45,
-      "grupos": "Cadete 3"
-    },
-    {
       "dia": "Jueves",
       "inicio": "09:10",
       "fin": "10:00",
@@ -172,11 +148,19 @@
     },
     {
       "dia": "Jueves",
+      "inicio": "11:15",
+      "fin": "12:05",
+      "tipo": "SEMINARIO",
+      "aula": 45,
+      "grupos": "G5 (4 CGA-ST)"
+    },
+    {
+      "dia": "Jueves",
       "inicio": "12:10",
       "fin": "13:00",
       "tipo": "SEMINARIO",
       "aula": 45,
-      "grupos": "G5 (4 CGA-ST), Cadete 3"
+      "grupos": "Cadete 3"
     }
   ],
   "proximaSemana": null,
