@@ -181,7 +181,7 @@ footer{margin-top:28px;padding-top:14px;border-top:1px solid var(--border);
   #print-sheet .summary{width:190mm !important;page-break-inside:avoid;break-inside:avoid;page-break-after:avoid;break-after:avoid;}
   header{display:none !important;}
   .meta-top{display:none !important;}
-  .week-tabs, .provisional-banner, .input-tools{display:none !important;}
+  .week-tabs, .provisional-banner, .input-tools, .schedule-warnings{display:none !important;}
   nav.days, #days{display:none !important;}
   .week-history{display:none !important;}
   .print-controls,.print-select{display:none !important;}
@@ -205,3 +205,13 @@ footer{margin-top:28px;padding-top:14px;border-top:1px solid var(--border);
      el Artifact se sirve en un iframe con sandbox que bloquea window.print/open/alert). */
   #print-sheet .detail-table{display:none !important;}
 }
+
+/* Avisos de revisión de la sábana (coincidencias y alumnado individual). Mismo lenguaje
+   visual "warn" que el banner de provisional, pero en bloque para que quepan varias líneas. */
+.schedule-warnings{display:flex;flex-direction:column;gap:10px;margin-bottom:14px;}
+.warning-block{
+  background:var(--warn-soft);border:1px solid var(--warn);border-radius:10px;padding:10px 12px;
+}
+.warning-title{margin:0 0 6px;font-size:12.5px;font-weight:700;color:var(--warn);}
+.warning-item{margin:0;font-size:12px;line-height:1.5;color:var(--ink);}
+.warning-item + .warning-item{margin-top:3px;}

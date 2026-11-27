@@ -1,4 +1,4 @@
-import { classKey, concurrentGroups, countTypes, filterPrintClasses, findFirstClass, groupConsecutiveLaboratories, findNextClass, minutes, scheduleDays, shortGroups, typeKey, weekCode } from "./schedule-model.js?v=2026-11-21-colors-1";
+import { classKey, concurrentGroups, countTypes, filterPrintClasses, findFirstClass, groupConsecutiveLaboratories, findNextClass, individualOnlySessions, minutes, overlappingSessions, scheduleDays, shortGroups, typeKey, weekCode } from "./schedule-model.js?v=2026-11-25-avisos-1";
 
 function node(tag, className, text) {
   const el = document.createElement(tag);
@@ -16,6 +16,7 @@ export function createScheduleView(config, onWeekChange) {
     weekLabel: document.getElementById("week-label"), source: document.getElementById("source-label"),
     updated: document.getElementById("updated-label"), checked: document.getElementById("checked-label"),
     tabs: document.getElementById("week-tabs"), banner: document.getElementById("provisional-banner"),
+    warnings: document.getElementById("schedule-warnings"),
     history: document.getElementById("week-history-body"), nav: document.getElementById("day-nav"),
     days: document.getElementById("days"), print: document.getElementById("print-sheet"),
     selectAllPrint: document.getElementById("select-all-print"),
@@ -142,6 +143,50 @@ export function createScheduleView(config, onWeekChange) {
     container.append(card);
   }
 
+  // Avisos de revisión sobre la semana que se está viendo. No bloquean nada ni alteran el
+  // horario: solo señalan dos cosas que conviene mirar en cuanto llega una sábana nueva,
+  // porque el pipeline no las puede dar por erróneas por sí solo.
+  //   - Coincidencias: dos sesiones a la vez. El detector del pipeline no las ve cuando están
+  //     en aulas distintas y sin grupos comunes (las considera desdobles entre profesores),
+  //     pero aquí todas las sesiones son de la misma persona.
+  //   - Alumnado individual sin grupo: horas montadas solo para alumnos sueltos.
+  function renderWarnings(active) {
+    if (!ui.warnings) return;
+    ui.warnings.replaceChildren();
+    const conflicts = overlappingSessions(active?.clases || [], daysOrder);
+    const individual = individualOnlySessions(active?.clases || []);
+    ui.warnings.hidden = !conflicts.length && !individual.length;
+    if (ui.warnings.hidden) return;
+
+    const describe = (item) => `${item.tipo} · aula ${item.aula ?? "—"} · ${shortGroups(item.grupos)}`;
+
+    if (conflicts.length) {
+      const block = node("div", "warning-block warning-conflict");
+      block.append(node("h2", "warning-title",
+        conflicts.length === 1 ? "Coincidencia de sesiones" : `Coincidencias de sesiones (${conflicts.length})`));
+      conflicts.forEach(({ day, a, b }) => {
+        const entry = node("p", "warning-item");
+        entry.append(node("b", "", `${day} ${a.inicio}–${a.fin}`));
+        entry.append(document.createTextNode(`: ${describe(a)} — a la vez que ${b.inicio}–${b.fin} ${describe(b)}.`));
+        block.append(entry);
+      });
+      ui.warnings.append(block);
+    }
+
+    if (individual.length) {
+      const block = node("div", "warning-block warning-individual");
+      block.append(node("h2", "warning-title",
+        individual.length === 1 ? "Hora con alumnado individual" : `Horas con alumnado individual (${individual.length})`));
+      individual.forEach((item) => {
+        const entry = node("p", "warning-item");
+        entry.append(node("b", "", `${item.dia} ${item.inicio}–${item.fin}`));
+        entry.append(document.createTextNode(`: ${describe(item)} — sin ningún grupo general.`));
+        block.append(entry);
+      });
+      ui.warnings.append(block);
+    }
+  }
+
   function renderSchedule(schedule, preview) {
     const active = preview ? schedule.proximaSemana : schedule;
     const days = scheduleDays(active.clases, daysOrder).map(([day, classes]) => [
@@ -177,6 +222,7 @@ export function createScheduleView(config, onWeekChange) {
         ? "Sábana provisional: puede sufrir cambios antes de que llegue esta semana."
         : "Horario actual basado en una sábana provisional; puede sufrir cambios."
       : "";
+    renderWarnings(active);
     ui.nav.replaceChildren();
     ui.days.replaceChildren();
 

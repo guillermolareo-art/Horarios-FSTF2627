@@ -37,7 +37,8 @@ def _ultimo_fin(datos: dict, semana_inicio: date) -> datetime | None:
 
 
 def cerrar_semana_si_corresponde(datos_actuales: dict, ahora: datetime | None = None) -> tuple[dict, bool]:
-    """Promueve la siguiente semana al terminar las clases o al llegar el sábado."""
+    """Promueve la siguiente semana al llegar el sábado, o ya el viernes en
+    cuanto ha terminado la última clase de la semana."""
     ahora = ahora or datetime.now(ZONA_HORARIA)
     if ahora.tzinfo is None:
         raise ValueError("La fecha de cierre debe incluir zona horaria.")
@@ -51,9 +52,29 @@ def cerrar_semana_si_corresponde(datos_actuales: dict, ahora: datetime | None = 
     if inicio_proxima.toordinal() != inicio_actual.toordinal() + 7:
         return datos_actuales, False
 
+    # La semana academica va de sabado a viernes (misma regla que semana_lunes()
+    # en sabana_mail.py). Se cierra al llegar el sabado, o ya el viernes en
+    # cuanto ha pasado la ultima clase de la semana: a esas alturas no queda
+    # docencia y adelantar la vista a la semana siguiente es util.
+    #
+    # ACOTADO el 27/11/2026 con "and ahora.date() >= viernes". Antes bastaba con
+    # que hubiera pasado la hora de fin de la ultima clase, sin mirar que dia
+    # era, y la ultima clase de FSTF no es el final de la semana lectiva: la
+    # 13B tenia su ultima sesion el miercoles 25 a las 12:05, el pipeline corrio
+    # a las 17:25 de ese mismo miercoles y promovio la 14A -- que empezaba el
+    # 30 -- a semana actual. La pagina paso a enseñar la semana siguiente tres
+    # dias antes, la 13B se archivo a mitad de semana y proximaSemana quedo a
+    # null, con lo que tambien desaparecio la pestaña de vista previa.
+    #
+    # Y era irreversible: pipeline.py calcula today_monday como el maximo entre
+    # el lunes real y el semanaInicio del fichero, asi que una vez adelantado el
+    # fichero ya no podia volver atras por si solo.
     sabado = inicio_actual + timedelta(days=5)
+    viernes = inicio_actual + timedelta(days=4)
     fin_ultimo = _ultimo_fin(datos_actuales, inicio_actual)
-    cerrada = ahora.date() >= sabado or (fin_ultimo is not None and ahora >= fin_ultimo)
+    cerrada = ahora.date() >= sabado or (
+        fin_ultimo is not None and ahora >= fin_ultimo and ahora.date() >= viernes
+    )
     if not cerrada:
         return datos_actuales, False
 

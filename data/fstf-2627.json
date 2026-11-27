@@ -3,9 +3,9 @@
   "id": "fstf-2627",
   "title": "Horario FSTF 26-27",
   "subtitle": "Fundamentos de Sistemas y Tecnologías de Fabricación",
-  "archivo": "SABANA_20261125_14A_PROVISIONAL.xlsm",
-  "actualizado": "2026-11-25",
-  "comprobado": "2026-11-26 18:06",
+  "archivo": "SABANA_20261127_14A_FINAL.xlsm",
+  "actualizado": "2026-11-27",
+  "comprobado": "2026-11-27 12:15",
   "semanaInicio": "2026-11-30",
   "historial": [
     {
@@ -66,7 +66,13 @@
       "semana": "10B",
       "teoria": 6,
       "seminario": 0,
-      "laboratorio": 4
+      "laboratorio": 8
+    },
+    {
+      "semana": "11A",
+      "teoria": 0,
+      "seminario": 0,
+      "laboratorio": 0
     },
     {
       "semana": "12A",
@@ -78,7 +84,7 @@
       "semana": "13B",
       "teoria": 6,
       "seminario": 0,
-      "laboratorio": 10
+      "laboratorio": 8
     }
   ],
   "clases": [
@@ -127,7 +133,7 @@
       "inicio": "12:10",
       "fin": "13:00",
       "tipo": "SEMINARIO",
-      "aula": 40,
+      "aula": 45,
       "grupos": "G4 (4 CGA-ST)"
     },
     {
@@ -135,8 +141,8 @@
       "inicio": "09:10",
       "fin": "10:00",
       "tipo": "SEMINARIO",
-      "aula": 40,
-      "grupos": "G3 (4 CGA-ST)"
+      "aula": 45,
+      "grupos": "G5 (4 CGA-ST)"
     },
     {
       "dia": "Jueves",
@@ -148,11 +154,11 @@
     },
     {
       "dia": "Jueves",
-      "inicio": "11:15",
-      "fin": "12:05",
+      "inicio": "12:10",
+      "fin": "13:00",
       "tipo": "SEMINARIO",
-      "aula": 45,
-      "grupos": "G5 (4 CGA-ST)"
+      "aula": 40,
+      "grupos": "G3 (4 CGA-ST)"
     },
     {
       "dia": "Jueves",

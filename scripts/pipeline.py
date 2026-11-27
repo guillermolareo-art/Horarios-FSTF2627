@@ -49,14 +49,27 @@ ZONA_HORARIA = ZoneInfo("Europe/Madrid")
 
 
 def dentro_ventana_de_ejecucion(ahora: datetime) -> bool:
-    """Limita el polling automático al horario lectivo configurado."""
+    """Limita el polling automático al horario lectivo, de lunes a viernes.
+
+    AMPLIADA el 27/11/2026. La ventana anterior empezaba el lunes a las 12:00
+    y cerraba el viernes a las 12:00, y el cron no corre en fin de semana. Eso
+    dejaba sin recoger justo las sabanas que mas importan: la DEFINITIVA de la
+    semana siguiente suele llegar el viernes por la mañana o el fin de semana,
+    y con aquella ventana no se publicaba hasta el lunes a mediodia, con las
+    clases del lunes ya empezadas. Caso real: la definitiva de la 14A llego el
+    viernes 27 a las 11:14 y solo quedaba la ejecucion de las 11:20 para
+    cogerla; cualquier retraso del planificador de GitHub -- que los tiene a
+    menudo -- la habria dejado para el lunes.
+
+    Ahora cualquier dia lectivo cubre de 08:00 a 21:00, asi que una sabana que
+    llegue el viernes por la tarde o en fin de semana entra en la primera
+    ejecucion del lunes por la mañana, antes de las clases. Sigue sin correr
+    sabado y domingo porque el cron del workflow es de lunes a viernes; si en
+    algun momento se quiere cobertura tambien en fin de semana, hay que
+    ampliar ahi el cron ademas de aqui."""
     hora = ahora.timetz().replace(tzinfo=None)
-    if ahora.weekday() == 0:
-        return time(12, 0) <= hora <= time(21, 0)
-    if ahora.weekday() in (1, 2, 3):
+    if ahora.weekday() <= 4:
         return time(8, 0) <= hora <= time(21, 0)
-    if ahora.weekday() == 4:
-        return time(8, 0) <= hora <= time(12, 0)
     return False
 
 

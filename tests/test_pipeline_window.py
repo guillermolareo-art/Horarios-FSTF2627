@@ -15,13 +15,20 @@ MADRID = ZoneInfo("Europe/Madrid")
 @pytest.mark.parametrize(
     "ahora,esperado",
     [
-        (datetime(2026, 11, 23, 11, 59, tzinfo=MADRID), False),
+        # Ventana ampliada el 27/11/2026: el lunes ya abre a las 08:00, para
+        # recoger antes de las clases lo que haya llegado el fin de semana.
+        (datetime(2026, 11, 23, 7, 59, tzinfo=MADRID), False),
+        (datetime(2026, 11, 23, 8, 0, tzinfo=MADRID), True),
         (datetime(2026, 11, 23, 12, 0, tzinfo=MADRID), True),
         (datetime(2026, 11, 24, 8, 0, tzinfo=MADRID), True),
         (datetime(2026, 11, 24, 21, 0, tzinfo=MADRID), True),
         (datetime(2026, 11, 24, 21, 1, tzinfo=MADRID), False),
+        # El viernes ya no cierra a las 12:00: las definitivas de la semana
+        # siguiente llegan a menudo el viernes por la mañana o mas tarde.
         (datetime(2026, 11, 27, 12, 0, tzinfo=MADRID), True),
-        (datetime(2026, 11, 27, 12, 1, tzinfo=MADRID), False),
+        (datetime(2026, 11, 27, 12, 1, tzinfo=MADRID), True),
+        (datetime(2026, 11, 27, 21, 0, tzinfo=MADRID), True),
+        (datetime(2026, 11, 27, 21, 1, tzinfo=MADRID), False),
         (datetime(2026, 11, 28, 10, 0, tzinfo=MADRID), False),
     ],
 )

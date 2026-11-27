@@ -18,6 +18,7 @@ el importador cubren por si solos:
 """
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from zoneinfo import ZoneInfo
 
@@ -25,6 +26,7 @@ from scripts.sabana_mail import semana_lunes
 from datetime import date, datetime
 
 ZONA_HORARIA = ZoneInfo("Europe/Madrid")
+_DIAS_ORDEN = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
 
 
 def _minutos(hhmm: str) -> int:
@@ -111,14 +113,79 @@ def _codigo_semana(archivo: str) -> str:
     return m.group(1) if m else (archivo or "?")
 
 
+def _clave_recuento(tipo: str | None) -> str | None:
+    """Cubo del recuento semanal al que va una sesion, o None si sus horas no
+    deben sumarse aqui. Regla confirmada por el autor (19/11/2026): los
+    EXAMENES PARCIALES cuentan como TEORIA, porque ocupan horas de teoria de
+    la asignatura; el EXAMEN FINAL no, porque tiene horas propias dedicadas en
+    el control de horas de firma. Cualquier otro tipo desconocido cae en
+    "teoria": es preferible que una hora rara aparezca en el recuento y se vea
+    a que desaparezca en silencio.
+
+    La deteccion del examen final es por la palabra "FINAL" en el tipo; cuando
+    llegue la primera sabana con examen final conviene comprobar como lo
+    escribe Coordinacion y ajustar aqui si usaran otra formula."""
+    t = (tipo or "").upper()
+    if t.startswith("SEM"):
+        return "seminario"
+    if t.startswith("LAB"):
+        return "laboratorio"
+    if "FINAL" in t:
+        return None
+    return "teoria"
+
+
 def _contar_por_tipo(clases: list[dict]) -> dict:
+    """Recuento semanal "de verdad" para el historial -- misma logica,
+    deliberadamente identica, que countTypes() de js/schedule-model.js, para
+    que lo que se archiva y lo que se ve en pantalla no se separen. Ademas de
+    saltarse las sesiones marcadas como de otro profesor ("propia": false),
+    hace dos ajustes y solo dos:
+
+      1) Franjas simultaneas: dos filas a la misma hora del mismo dia (el
+         mismo laboratorio partido en dos aulas, o dos grupos en paralelo) son
+         una sola hora para una persona, asi que esa franja cuenta una vez.
+      2) Repeticion en otro dia: si un mismo grupo tiene SEMINARIO o
+         LABORATORIO en mas de un DIA (duplicidad tipica de la sabana, no dos
+         horas reales), solo cuenta la primera aparicion cronologica.
+
+    Lo que NO se descuenta es la repeticion del mismo grupo en el MISMO dia:
+    los laboratorios se imparten en bloques de dos o mas horas seguidas con
+    los mismos grupos y cada una de esas horas es real. Una version anterior
+    (commit a8c7918) descontaba tambien esas, y por eso la semana 10B quedo
+    archivada con 4 horas de laboratorio cuando eran 8."""
     cuentas = {"teoria": 0, "seminario": 0, "laboratorio": 0}
-    for c in clases:
-        if c.get("propia") is False:
+    vistos: dict[str, dict[str, str]] = {"seminario": {}, "laboratorio": {}}
+    franjas_contadas: set[tuple] = set()
+    propias = [c for c in clases if c.get("propia") is not False]
+    ordenadas = sorted(propias, key=lambda c: (_DIAS_ORDEN.index(c["dia"]), _minutos(c["inicio"])))
+    for c in ordenadas:
+        clave = _clave_recuento(c.get("tipo"))
+        if clave is None:
             continue
-        tipo = c["tipo"].upper()
-        clave = "seminario" if tipo.startswith("SEM") else "laboratorio" if tipo.startswith("LAB") else "teoria"
-        cuentas[clave] += 1
+        franja = (clave, c["dia"], c["inicio"], c["fin"])
+        if franja in franjas_contadas:
+            continue
+        if clave == "teoria":
+            cuentas["teoria"] += 1
+            franjas_contadas.add(franja)
+            continue
+        grupos = [
+            re.sub(r"\s*\([^)]*\)\s*", "", g).strip().upper()
+            for g in (c.get("grupos") or "").split(",")
+        ]
+        grupos = [g for g in grupos if g]
+        vistos_tipo = vistos[clave]
+        # Cuenta si aporta algun grupo nuevo, o si los grupos ya vistos lo
+        # fueron ESE MISMO dia (bloque de horas seguidas, no duplicidad).
+        cuenta = not grupos or any(
+            g not in vistos_tipo or vistos_tipo[g] == c["dia"] for g in grupos
+        )
+        if cuenta:
+            cuentas[clave] += 1
+            franjas_contadas.add(franja)
+        for g in grupos:
+            vistos_tipo.setdefault(g, c["dia"])
     return cuentas
 
 

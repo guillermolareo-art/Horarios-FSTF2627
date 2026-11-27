@@ -19,9 +19,94 @@ export function typeKey(type = "") {
   return normalized.startsWith("SEM") ? "seminario" : normalized.startsWith("LAB") ? "laboratorio" : "teoria";
 }
 
-export function countTypes(classes = []) {
+// Una etiqueta de "grupos" es o un grupo colectivo (G1, G3B, IM2, con o sin el paréntesis de
+// curso) o un alumno individual seudonimizado ("Cadete N"). Mismo criterio que el de
+// scripts/validate-schedules.mjs: si los dos se separan, estos avisos dejan de ser fiables.
+const COLLECTIVE_GROUP = /^(?:G\d+[AB]?|IM\d+)(?:\s*\(.*\))?$/i;
+
+export function splitGroups(groups = "") {
+  return String(groups).split(",").map((label) => label.trim()).filter(Boolean);
+}
+
+export function isCollectiveGroup(label = "") {
+  return COLLECTIVE_GROUP.test(String(label).trim());
+}
+
+// Sesiones de una misma semana que se pisan en el tiempo dentro del mismo día.
+// Diferencia importante con detectar_solapamientos() de scripts/merge_schedule.py: aquel solo
+// avisa si las dos sesiones comparten aula o algún grupo, porque asume que dos clases a la vez
+// en aulas distintas son desdobles legítimos ENTRE profesores. Aquí todas las sesiones del
+// horario son de la misma persona, así que dos a la vez son imposibles de atender compartan
+// aula o no — que es justo el caso que se escapaba. Por eso esto es un aviso de la vista y no
+// un bloqueo del pipeline: el horario se sigue publicando, pero el problema se ve.
+export function overlappingSessions(classes = [], daysOrder = DEFAULT_DAYS) {
+  const conflicts = [];
+  for (const [day, items] of scheduleDays(classes, daysOrder)) {
+    for (let i = 0; i < items.length; i += 1) {
+      for (let j = i + 1; j < items.length; j += 1) {
+        const [a, b] = [items[i], items[j]];
+        if (minutes(a.inicio) < minutes(b.fin) && minutes(b.inicio) < minutes(a.fin)) {
+          conflicts.push({ day, a, b });
+        }
+      }
+    }
+  }
+  return conflicts;
+}
+
+// Sesiones cuyo alumnado es SOLO individual: ningún grupo colectivo, únicamente alumnos
+// sueltos. Son horas montadas para una o varias personas concretas; conviene verlas pronto
+// porque suelen ser el origen de las coincidencias y de horas de clase individuales que no
+// estaban previstas.
+export function individualOnlySessions(classes = []) {
+  return (classes || []).filter((item) => {
+    const labels = splitGroups(item.grupos);
+    return labels.length > 0 && !labels.some(isCollectiveGroup);
+  });
+}
+
+// Cubo del recuento semanal al que va una sesión, o null si sus horas no deben sumarse.
+// Regla confirmada por el autor (19/11/2026): los exámenes PARCIALES cuentan como teoría
+// (ocupan horas de teoría de la asignatura); el examen FINAL no, porque tiene horas propias
+// dedicadas en el control de horas de firma. Cualquier otro tipo desconocido cae en "teoria":
+// mejor que una hora rara se vea en el recuento a que desaparezca en silencio.
+// typeKey() se mantiene aparte porque la vista lo usa para las clases CSS de los badges.
+export function countingKey(type = "") {
+  const normalized = String(type).toUpperCase();
+  if (normalized.startsWith("SEM")) return "seminario";
+  if (normalized.startsWith("LAB")) return "laboratorio";
+  if (normalized.includes("FINAL")) return null;
+  return "teoria";
+}
+
+// Recuento semanal "de verdad". Misma lógica, deliberadamente idéntica, que
+// _contar_por_tipo() de scripts/merge_schedule.py, para que el recuento que se ve en pantalla
+// y el que se archiva en el historial no se separen. Hace dos ajustes, y solo dos:
+//   1) Franjas simultáneas: dos filas a la misma hora del mismo día (un laboratorio partido en
+//      dos aulas, o dos grupos en paralelo) son una sola hora para una persona.
+//   2) Repetición en otro día: si un grupo tiene seminario o laboratorio en más de un DÍA
+//      (duplicidad típica de la sábana), solo cuenta la primera aparición cronológica.
+// La repetición del mismo grupo en el MISMO día sí cuenta: los laboratorios se dan en bloques
+// de horas seguidas y cada una es real. Descontarlas dejó la semana 10B en 4 horas en vez de 8.
+export function countTypes(classes = [], daysOrder = DEFAULT_DAYS) {
   const counts = { teoria: 0, seminario: 0, laboratorio: 0 };
-  classes.forEach((item) => { counts[typeKey(item.tipo)] += 1; });
+  const seen = { seminario: new Map(), laboratorio: new Map() };
+  const countedSlots = new Set();
+  const ordered = [...classes].sort((a, b) =>
+    daysOrder.indexOf(a.dia) - daysOrder.indexOf(b.dia) || minutes(a.inicio) - minutes(b.inicio));
+  ordered.forEach((item) => {
+    if (item.propia === false) return; // sesión marcada como de otro profesor
+    const key = countingKey(item.tipo);
+    if (key === null) return;
+    const slot = `${key}||${item.dia}||${item.inicio}||${item.fin}`;
+    if (countedSlots.has(slot)) return;
+    if (key === "teoria") { counts.teoria += 1; countedSlots.add(slot); return; }
+    const groups = shortGroups(item.grupos).split(",").map((g) => g.trim().toUpperCase()).filter(Boolean);
+    const seenType = seen[key];
+    const isRealHour = groups.length === 0 || groups.some((g) => !seenType.has(g) || seenType.get(g) === item.dia);
+    if (isRealHour) { counts[key] += 1; countedSlots.add(slot); }
+    groups.forEach((g) => { if (!seenType.has(g)) seenType.set(g, item.dia); });
+  });
   return counts;
 }
 
